@@ -1,65 +1,864 @@
-import Image from "next/image";
+'use client'
+import { useState, useEffect, useRef } from 'react'
+import { motion, AnimatePresence, useAnimation } from 'framer-motion'
+import AnimatedBackground from './AnimatedBackground'
+import { useSpotify } from '@/hooks/useSpotify'
+import { inter } from '@/app/layout'
+import {
+  User, Info, Gamepad, Users, Calendar, Music,
+  MessageCircle, Disc, Headphones, Instagram
+} from 'lucide-react'
+
+type SpotifyData = {
+  song: string
+  artist: string
+  album_art_url: string
+  timestamps?: { start: number; end: number}
+}
+
+type LanyardData = {
+  discord_user: { id: string; username: string; avatar: string; global_name: string }
+  discord_status: 'online' | 'idle' | 'dnd' | 'offline'
+  activities: Array<{ name: string; type: number; state?: string; details?: string }>
+  listening_to_spotify: boolean
+  spotify?: SpotifyData
+}
+
+type InstagramData = {
+  username: string
+  avatar: string
+  posts: number
+  followers: number
+  following: number
+}
+
+const SpotifyIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="lucide lucide-music2"
+    style={{ color: 'lab(66.9756 -58.27 19.5419)' }}
+  >
+    <circle cx="8" cy="18" r="4"></circle>
+    <path d="M12 18V2l7 4"></path>
+  </svg>
+)
+
+const LazerIcon = ({ size = 16, className = "", ...props }) => (
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    width={size}
+    height={size}
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    className={`lucide lucide-hand-metal ${className}`}
+    {...props}
+  >
+    <path d="M18 12.5V10a2 2 0 0 0-2-2a2 2 0 0 0-2 2v1.4"></path>
+    <path d="M14 11V9a2 2 0 1 0-4 0v2"></path>
+    <path d="M10 10.5V5a2 2 0 1 0-4 0v9"></path>
+    <path d="m7 15-1.76-1.76a2 2 0 0 0-2.83 2.82l3.6 3.6C7.5 21.14 9.2 22 12 22h2a8 8 0 0 0 8-8V7a2 2 0 1 0-4 0v5"></path>
+  </svg>
+)
+
+// EQS 
+function Equalizer({ isPlaying }: { isPlaying: boolean }) {
+  if (!isPlaying) return null
+
+  return (
+    <>
+      <style jsx>{`
+        @keyframes eq-bounce {
+          0%, 100% { height: 3px; }
+          50% { height: 9px; }
+        }
+        .eq-bar {
+          animation: eq-bounce 0.55s ease-in-out infinite;
+        }
+        .eq-bar-2 {
+          animation-delay: 0.18s;
+        }
+        .eq-bar-3 {
+          animation-delay: 0.36s;
+        }
+      `}</style>
+      <div className="absolute bottom-1 right-1 flex items-end gap-0.5">
+        <div className="w-0.5 bg-emerald-500 rounded-full eq-bar" />
+        <div className="w-0.5 bg-emerald-500 rounded-full eq-bar eq-bar-2" />
+        <div className="w-0.5 bg-emerald-500 rounded-full eq-bar eq-bar-3" />
+      </div>
+    </>
+  )
+}
+
+function InstagramModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [loading, setLoading] = useState(true)
+
+  const igData: InstagramData = {
+    username: '21scy',
+    avatar: 'https://cdn.discordapp.com/avatars/1184191270248251512/1bf22f8be745b4400ae22bac727c6700.png?size=4096',
+    posts: 0,
+    followers: 23,
+    following: 27
+  }
+
+  useEffect(() => {
+    if (!open) return
+    setLoading(true)
+    const timer = setTimeout(() => {
+      setLoading(false)
+    }, 800)
+    return () => clearTimeout(timer)
+  }, [open])
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2, ease: 'easeInOut' }}
+            onClick={onClose}
+            className="fixed inset-0 z-[60] bg-black/50"
+          />
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ duration: 0.2, ease: 'easeInOut' }}
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[70] w-[510px]"
+          >
+            <div className="relative bg-[#120c07] rounded-xl border border-[#291f18] overflow-hidden shadow-lg w-">
+              <div className="p-6 h-full">
+                {loading? (
+                  <>
+                    <div className="flex items-start gap-4 mb-5">
+                      <div className="relative flex-shrink-0">
+                        <div className="w-16 h-16 rounded-full overflow-hidden bg-[#221812] ring-2 ring-offset-2 ring-offset-[#120c07] ring-[#291f18] animate-pulse" />
+                      </div>
+                      <div className="flex-1 min-w-0 space-y-2">
+                        <div className="h-5 w-32 rounded bg-[#221812] animate-pulse" />
+                        <div className="h-4 w-24 rounded bg-[#221812] animate-pulse" />
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-around py-4 mb-4 bg-[#221812]/30 rounded-lg border border-[#291f18]/50">
+                      {[1,2,3].map(i => (
+                        <div key={i} className="text-center space-y-1">
+                          <div className="h-5 w-8 mx-auto rounded bg-[#221812] animate-pulse" />
+                          <div className="h-3 w-16 rounded bg-[#221812] animate-pulse" />
+                        </div>
+                      ))}
+                    </div>
+                    <div className="h-10 w-full rounded-md bg-[#221812] animate-pulse" />
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-start gap-4 mb-5">
+                      <div className="relative flex-shrink-0">
+                        <div className="w-16 h-16 rounded-full overflow-hidden bg-[#221812] ring-2 ring-offset-2 ring-offset-[#120c07] ring-[#291f18]">
+                          <img
+                            alt={igData.username}
+                            loading="lazy"
+                            width="64"
+                            height="64"
+                            decoding="async"
+                            className="object-cover w-full h-full"
+                            src={igData.avatar}
+                          />
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h2 className="text-lg font-bold text-[#ede3d6] mb-0.5">
+                          {igData.username}
+                        </h2>
+                        <p className="text-sm text-[#8d7d6e] font-mono">
+                          @{igData.username}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-around py-4 mb-4 bg-[#221812]/30 rounded-lg border border-[#291f18]/50">
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-[#ede3d6]">{igData.posts}</div>
+                        <div className="text-xs text-[#8d7d6e]">Posts</div>
+                      </div>
+                      <div className="w-px h-10 bg-[#291f18]"></div>
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-[#ede3d6]">{igData.followers}</div>
+                        <div className="text-xs text-[#8d7d6e]">Seguidores</div>
+                      </div>
+                      <div className="w-px h-10 bg-[#291f18]"></div>
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-[#ede3d6]">{igData.following}</div>
+                        <div className="text-xs text-[#8d7d6e]">Seguindo</div>
+                      </div>
+                    </div>
+
+                    <a
+                      href={`https://www.instagram.com/${igData.username}`} 
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all border border-[#291f18] bg-[#22181280] shadow-xs hover:bg-[#221812] hover:text-[#ede3d6] h-10 rounded-md px-6 w-full text-[#8d7d6e]"
+                      style={{
+                        fontWeight: 500,
+                        WebkitFontSmoothing: 'antialiased'
+                      }}
+                    >
+                      <Instagram className="w-4 h-4" />
+                      Abrir Perfil
+                    </a>
+                  </>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  )
+}
+
+function formatTime(ms: number) {
+  const totalSeconds = Math.floor(ms / 1000)
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`
+}
+
+function HomeContent({
+  cardRef,
+  handleMouseMove,
+  handleMouseLeave,
+  isHovering,
+  rotate,
+  discordData,
+  avatarUrl,
+  getStatusColor,
+  musicaAtual,
+  setIgModalOpen
+}: any) {
+  // REMOVE: const spotify = useSpotify()
+  
+  // ADICIONA: controle de progress manual
+  const [currentProgress, setCurrentProgress] = useState(0)
+  
+  useEffect(() => {
+    if (!discordData?.listening_to_spotify || !discordData?.spotify?.timestamps) {
+      setCurrentProgress(0)
+      return
+    }
+    
+    const { start, end } = discordData.spotify.timestamps
+    
+    // Seta progresso inicial
+    const initialProgress = Date.now() - start
+    setCurrentProgress(initialProgress)
+    
+    // Atualiza a cada 1s
+    const interval = setInterval(() => {
+      const now = Date.now()
+      const elapsed = now - start
+      const duration = end - start
+      setCurrentProgress(Math.min(elapsed, duration))
+    }, 1000)
+    
+    return () => clearInterval(interval)
+  }, [discordData?.spotify?.song, discordData?.spotify?.timestamps?.start]) // roda quando muda música
+  
+  const isPlaying = discordData?.listening_to_spotify || false
+  const duration = discordData?.spotify?.timestamps 
+    ? discordData.spotify.timestamps.end - discordData.spotify.timestamps.start 
+    : 0
+  const progressPercent = duration ? (currentProgress / duration) * 100 : 0
+  
+  return (
+    <div className="flex flex-col items-center">
+      
+      <motion.h1
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="text-2xl sm:text-4xl md:text- font-bold text-foreground mb-4 md:mb-13 text-balance text-center"
+        style={{
+          fontFamily: '"Inter", "Inter Fallback", sans-serif',
+          fontSize: '48px',
+          fontWeight: 700,
+          WebkitFontSmoothing: 'antialiased',
+          lineHeight: '48px',
+          transform: 'translateY(1px)',
+          color: '#ede3d6'
+        }}
+      >
+        07, can you do somethin' for me?
+      </motion.h1>
+
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="w-full max-w-2xl mx-auto px-4"
+        style={{ perspective: 2000 }}
+      >
+        <motion.div
+          ref={cardRef}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+          animate={{
+            rotateX: isHovering ? rotate.x : 0,
+            rotateY: isHovering ? rotate.y : 0,
+            scale: isHovering ? 1.05 : 1
+          }}
+          transition={{
+            type: "spring",
+            stiffness: 400,
+            damping: 21
+          }}
+          className="relative rounded-2xl border overflow-hidden"
+          style={{
+            width: '640px',
+            maxWidth: 'none',
+            minHeight: '444px',
+            transformStyle: "preserve-3d",
+            backgroundColor: '#120c07',
+            borderColor: '#291f18',
+            boxShadow: isHovering
+         ? 'rgba(0, 0, 0, 0.2) 4px 1.84px 20px 0px, rgba(188, 158, 123, 0.12) 0px 0px 80px 0px, rgba(167, 138, 98, 0.08) 0px 0px 140px'
+              : 'rgba(0, 0, 0, 0.15) 0px 20px 40px',
+            willChange: 'transform',
+          }}
+        >
+          <div className="h-28 relative overflow-hidden">
+            <div className="h-full bg-gradient-to-br from-[#b5825f66] via-[#a15d3e4D] to-[#221812]">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent)]"></div>
+            </div>
+          </div>
+
+          <div className="px-6 pb-6">
+            <div className="flex items-end justify-between -mt-12 mb-4">
+              <div className="relative">
+                <div className="w-24 h-24 rounded-full border-4 overflow-hidden"
+                     style={{ borderColor: '#120c07', backgroundColor: '#221812' }}>
+                  <img
+                    alt={discordData?.discord_user.global_name || '07'}
+                    loading="lazy"
+                    width="96"
+                    height="96"
+                    decoding="async"
+                    className="object-cover w-full h-full"
+                    src={avatarUrl}
+                  />
+                </div>
+                <div
+                  className="absolute bottom-1 right-1 w-6 h-6 rounded-full border-4"
+                  style={{
+                    backgroundColor: getStatusColor(discordData?.discord_status || 'offline'),
+                    borderColor: '#120c07'
+                  }}
+                />
+              </div>
+
+              <div className="flex items-center gap-1.5 mb-8 rounded-lg px-3 py-2 max-w-[60%] z-50 overflow-x-auto"
+                   style={{ backgroundColor: '#221812CC' }}>
+                <button data-state="closed" data-slot="tooltip-trigger">
+                  <div className="relative flex-shrink-0 cursor-pointer">
+                    <div className="absolute inset-0 bg-primary/20 rounded-full blur-md opacity-0 hover:opacity-100 transition-opacity"></div>
+                    <img alt="Nitro" loading="lazy" width="20" height="20" decoding="async" className="object-contain relative z-10" src="https://cdn.discordapp.com/badge-icons/2ba85e8026a8614b640c2837bcdfe21b.png" />
+                  </div>
+                </button>
+                <div className="relative flex-shrink-0" data-state="closed" data-slot="tooltip-trigger">
+                  <div className="absolute inset-0 bg-primary/20 rounded-full blur-md opacity-0 hover:opacity-100 transition-opacity"></div>
+                  <img alt="Quests" loading="lazy" width="20" height="20" decoding="async" className="object-contain relative z-10" src="https://cdn.discordapp.com/badge-icons/7d9ae358c8c5e118768335dbe68b4fb8.png" />
+                </div>
+                <button data-state="closed" data-slot="tooltip-trigger">
+                  <div className="relative flex-shrink-0 cursor-pointer">
+                    <div className="absolute inset-0 bg-primary/20 rounded-full blur-md opacity-0 hover:opacity-100 transition-opacity"></div>
+                    <img alt="Last Meadow Online" loading="lazy" width="20" height="20" decoding="async" className="object-contain relative z-10" src="https://cdn.discordapp.com/badge-icons/ca105ad9cfc8580c765101d17bbb2323.png" />
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <h1 className="text-2xl font-bold" style={{ color: '#ede3d6' }}>
+                {discordData?.discord_user.global_name || '07'}
+              </h1>
+              <p className="text-sm font-mono" style={{ color: '#8d7d6e' }}>
+                @{discordData?.discord_user.username || 'krov'}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 mb-4">
+              <div className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-full"
+                   style={{
+                     backgroundColor: '#22181299',
+                     color: 'lab(53.5643 4.57534 10.6701)'
+                   }}>
+                <Calendar className="w-3.5 h-3.5" />
+                <span>12 de dezembro de 2023</span>
+              </div>
+            </div>
+
+            <div className={`rounded-xl px-4 pt-4 border transition-all ${isPlaying ? 'pb-2' : 'pb-4'}`}
+              style={{
+                backgroundColor: '#22181280',
+                borderColor: '#291f1880',
+              }}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-1.5">
+                  <SpotifyIcon />
+                  <span className="text-xs uppercase tracking-wider font-medium"
+                        style={{ color: '#8d7d6e' }}>
+                    {isPlaying ? 'Ouvindo no Spotify' : 'Última atividade'}
+                  </span>
+                </div>
+                {isPlaying && (
+                  <div className="inline-flex items-center gap-2.5 rounded-full border px-2 py-0.5 text-xs border-emerald-500/30 text-emerald-400">
+                    <div className="relative flex items-center justify-center">
+                      <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping absolute" />
+                      <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full" />
+                    </div>
+                    Spotify
+                  </div>
+                )}
+              </div>
+              <div className="flex gap-4">
+                <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+                  <img
+                    alt={musicaAtual?.song || 'Nenhuma música'}
+                    loading="lazy"
+                    decoding="async"
+                    className="object-cover"
+                    src={musicaAtual?.album_art_url || 'https://i.scdn.co/image/ab67616d0000b27333c1f5879f6d6d2ce284a906'}
+                    style={{ position: 'absolute', height: '100%', width: '100%', inset: '0px' }}
+                  />
+                  <Equalizer isPlaying={isPlaying} />
+                </div>
+                <div className="flex-1 min-w-0 flex flex-col justify-center">
+                  <h3
+                    className="truncate text-sm"
+                    style={{
+                      color: '#E0D6C9',
+                      fontFamily: 'Inter, "Inter Fallback"',
+                      fontSize: '14px',
+                      fontWeight: 500,
+                      WebkitFontSmoothing: 'antialiased'
+                    }}
+                  >
+                    {musicaAtual?.song || 'Nada tocando'}
+                  </h3>
+                  <p className="text-sm truncate" style={{ color: '#8d7d6e' }}>
+                    {musicaAtual?.artist || '...'}
+                  </p>
+                  {isPlaying && duration > 0 ? (
+                    <div className="mt-2 space-y-0.5">
+                      <div className="h-1 rounded-full overflow-hidden" style={{ backgroundColor: '#8d7d6e33' }}>
+                        <div
+                          className="h-full rounded-full"
+                          style={{
+                            backgroundColor: '#00BC7D',
+                            width: `${progressPercent}%`,
+                            transition: 'width 1000ms linear'
+                          }}
+                        />
+                      </div>
+                      <div className="flex justify-between font-mono" style={{ 
+                        fontSize: '10px',
+                        color: '#8d7d6e'
+                      }}>
+                        <span>{formatTime(currentProgress)}</span>
+                        <span>{formatTime(duration)}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-xs mt-1" style={{ color: '#8d7d6e' }}>
+                      {isPlaying ? 'Tocando agora' : 'Última música ouvida'}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
+
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4, duration: 0.5, ease: "easeOut" }}
+        className="flex items-center gap-3 mt-10"
+      >
+        <button
+          onClick={() => setIgModalOpen(true)}
+          className="w-9 h-9 md:w-11 md:h-11 rounded-xl border border-[#291f18] flex items-center justify-center bg-[#22181280] text-[#8d7d6e] hover:bg-[#221812] hover:text-[#ede3d6] hover:-translate-y-0.5 hover:scale-110 transition-all duration-150"
+          style={{
+            borderTopLeftRadius: '16px',
+            borderTopRightRadius: '16px',
+            borderBottomLeftRadius: '16px',
+            borderBottomRightRadius: '16px'
+          }}
+        >
+          <Instagram className="w-4 h-4 md:w-5 md:h-5" />
+        </button>
+
+        <a
+          href="https://open.spotify.com/user/31b7ubmbc3l7ucagz4txamv5yjpy?si=2602be9e20df46f6"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-9 h-9 md:w-11 md:h-11 rounded-xl border border-[#291f18] flex items-center justify-center bg-[#22181280] text-[#8d7d6e] hover:bg-[#221812] hover:text-[#ede3d6] hover:-translate-y-0.5 hover:scale-110 transition-all duration-150"
+          style={{
+            borderTopLeftRadius: '16px',
+            borderTopRightRadius: '16px',
+            borderBottomLeftRadius: '16px',
+            borderBottomRightRadius: '16px'
+          }}
+        >
+          <svg className="w-4 h-4 md:w-5 md:h-5" viewBox="0 0 48 48" fill="currentColor">
+            <path d="M23.9266 0C10.7126 0 0 10.7123 0 23.9263C0 37.1409 10.7126 47.8523 23.9266 47.8523C37.142 47.8523 47.8534 37.1409 47.8534 23.9263C47.8534 10.7131 37.142 0.00114285 23.9263 0.00114285L23.9266 0ZM34.8991 34.5086C34.4706 35.2114 33.5506 35.4343 32.8477 35.0029C27.23 31.5714 20.158 30.7943 11.8294 32.6971C11.0269 32.88 10.2269 32.3771 10.044 31.5743C9.86029 30.7714 10.3611 29.9714 11.1657 29.7886C20.28 27.7054 28.098 28.6029 34.4049 32.4571C35.1077 32.8886 35.3306 33.8057 34.8991 34.5086ZM37.8277 27.9929C37.2877 28.8714 36.1391 29.1486 35.262 28.6086C28.8306 24.6546 19.0269 23.5097 11.4197 25.8189C10.4331 26.1169 9.39114 25.5609 9.09171 24.576C8.79457 23.5894 9.35086 22.5494 10.3357 22.2494C19.0251 19.6129 29.8277 20.89 37.2134 25.4286C38.0906 25.9686 38.3677 27.1169 37.8277 27.9929ZM38.0791 21.2089C30.3677 16.6286 17.6449 16.2074 10.2823 18.442C9.1 18.8006 7.84971 18.1331 7.49143 16.9509C7.13314 15.768 7.8 14.5186 8.98314 14.1591C17.4349 11.5934 31.4849 12.0891 40.3631 17.3597C41.4289 17.9909 41.7774 19.3643 41.146 20.4263C40.5174 21.4897 39.1403 21.8403 38.0803 21.2089H38.0791Z"></path>
+          </svg>
+        </a>
+
+        <a
+          href="https://last.fm/user/l9ve"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-9 h-9 md:w-11 md:h-11 rounded-xl border border-[#291f18] flex items-center justify-center bg-[#22181280] text-[#8d7d6e] hover:bg-[#221812] hover:text-[#ede3d6] hover:-translate-y-0.5 hover:scale-110 transition-all duration-150"
+          style={{
+            borderTopLeftRadius: '16px',
+            borderTopRightRadius: '16px',
+            borderBottomLeftRadius: '16px',
+            borderBottomRightRadius: '16px',
+          }}
+        >
+          <svg className="w-4 h-4 md:w-5 md:h-5" viewBox="0 0 487 487" fill="currentColor">
+            <path d="M412.238 217.438C408.053 216.106 403.868 214.775 399.873 213.443C369.625 203.931 351.363 198.224 351.363 174.635C351.363 155.421 366.201 141.534 386.556 141.534C402.155 141.534 413.76 148.002 424.223 162.65C425.174 163.982 427.076 164.553 428.598 163.792L458.845 148.002C459.606 147.622 460.367 146.861 460.557 145.91C460.748 144.959 460.748 144.007 460.177 143.246C443.817 114.141 420.228 100.063 387.888 100.063C338.807 100.063 307.229 129.74 307.229 175.586C307.229 222.574 337.856 241.598 394.356 260.05C427.076 270.894 441.534 276.791 441.534 300C441.534 326.252 417.945 345.085 385.605 343.944C351.743 342.802 341.471 324.92 328.725 295.624C306.848 245.973 282.118 187.952 281.927 187.381C257.007 129.93 207.736 97.0195 146.48 97.0195C65.6309 97.0195 0 162.65 0 243.5C0 324.35 65.6309 389.98 146.48 389.98C190.615 389.98 231.896 370.386 259.67 336.334C260.431 335.383 260.621 334.052 260.241 332.91L241.788 290.298C241.217 289.156 240.076 288.395 238.744 288.205C237.413 288.205 236.271 288.966 235.51 290.107C218.009 323.398 183.957 344.134 146.29 344.134C90.932 344.134 45.8465 299.048 45.8465 243.5C45.8465 188.142 90.932 142.866 146.29 142.866C186.62 142.866 223.525 166.836 238.364 202.6L284.02 306.848L289.347 318.643C310.082 366.772 340.329 388.268 387.888 388.459C444.388 388.459 487 350.982 487 301.331C487.38 251.68 459.797 232.847 412.238 217.438Z"></path>
+          </svg>
+        </a>
+
+        <a
+          href="https://www.roblox.com/users/1075117505/profile"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-9 h-9 md:w-11 md:h-11 rounded-xl border border-[#291f18] flex items-center justify-center bg-[#22181280] text-[#8d7d6e] hover:bg-[#221812] hover:text-[#ede3d6] hover:-translate-y-0.5 hover:scale-110 transition-all duration-150"
+          style={{
+            borderTopLeftRadius: '16px',
+            borderTopRightRadius: '16px',
+            borderBottomLeftRadius: '16px',
+            borderBottomRightRadius: '16px'
+          }}
+        >
+          <svg className="w-4 h-4 md:w-5 md:h-5" viewBox="0 0 48 48" fill="currentColor">
+            <path d="M10.328 0L0.32 37.856L37.672 48L47.68 10.144L10.328 0ZM26.382 30.328L17.504 27.988L19.852 19.102L28.73 21.442L26.382 30.328Z"></path>
+          </svg>
+        </a>
+
+        <div className="w-px h-6 mx-2" style={{ backgroundColor: '#291f18' }}></div>
+
+        <a href="#" className="text-sm flex items-center gap-1 group hover:text-[#ede3d6] transition-colors duration-150" style={{ color: '#8d7d6e' }}>
+          Conhecer mais
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-right w-4 h-4 group-hover:translate-x-1 transition-transform">
+            <path d="M5 12h14"></path>
+            <path d="m12 5 7 7-7 7"></path>
+          </svg>
+        </a>
+      </motion.div>
+
+      <button className="fixed bottom-6 right-6 p-3 rounded-xl"
+              style={{ backgroundColor: '#b5825f', color: '#080503' }}>
+        <Music size={18} />
+      </button>
+    </div>
+  )
+}
 
 export default function Home() {
+
+  const [entrou, setEntrou] = useState(false)
+  const [discordData, setDiscordData] = useState<LanyardData | null>(null)
+  const [ultimaMusica, setUltimaMusica] = useState<SpotifyData | null>(null)
+  const [igModalOpen, setIgModalOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState<'home' | 'sobre' | 'lazer' | 'amigos'>('home')
+  const DISCORD_ID = '1184191270248251512'
+  const controls = useAnimation()
+  const isFirstRender = useRef(true)
+  
+
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [isHovering, setIsHovering] = useState(false);
+  const [rotate, setRotate] = useState({ x: 0, y: 0 });
+  const rafRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      return
+    }
+    controls.start({
+      y: [-100, 0],
+      opacity: [0, 1],
+      transition: { duration: 0.6, ease: "easeOut" }
+    })
+  }, [activeTab, controls])
+
+  function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+
+    rafRef.current = requestAnimationFrame(() => {
+      if (!cardRef.current) return;
+      const rect = cardRef.current.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+
+      const rotateX = ((y - centerY) / centerY) * -5;
+      const rotateY = ((x - centerX) / centerX) * 5;
+
+      setRotate({ x: rotateX, y: rotateY });
+      setIsHovering(true);
+    });
+  }
+
+  function handleMouseLeave() {
+    setRotate({ x: 0, y: 0 });
+    setIsHovering(false);
+  }
+
+  useEffect(() => {
+    const musicaSalva = localStorage.getItem('ultimaMusica')
+    if (musicaSalva) setUltimaMusica(JSON.parse(musicaSalva))
+
+    let ws: WebSocket
+    let reconnectTimeout: NodeJS.Timeout
+
+    const connect = () => {
+      ws = new WebSocket('wss://api.lanyard.rest/socket')
+
+      ws.onopen = () => {
+        ws.send(JSON.stringify({
+          op: 2,
+          d: { subscribe_to_id: DISCORD_ID }
+        }))
+      }
+
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data)
+
+        if (data.t === 'INIT_STATE' || data.t === 'PRESENCE_UPDATE') {
+          const presence = data.d
+          setDiscordData(presence)
+
+          if (presence.listening_to_spotify && presence.spotify) {
+            setUltimaMusica(presence.spotify)
+            localStorage.setItem('ultimaMusica', JSON.stringify(presence.spotify))
+          }
+        }
+      }
+
+      ws.onclose = () => {
+        reconnectTimeout = setTimeout(connect, 3000)
+      }
+    }
+
+    connect()
+
+    fetch(`https://api.lanyard.rest/v1/users/${DISCORD_ID}`)
+  .then(res => res.json())
+  .then(json => {
+        if (json.success) {
+          setDiscordData(json.data)
+          if (json.data.listening_to_spotify && json.data.spotify) {
+            setUltimaMusica(json.data.spotify)
+            localStorage.setItem('ultimaMusica', JSON.stringify(json.data.spotify))
+          }
+        }
+      })
+  .catch(e => console.error('Erro Lanyard:', e))
+
+    return () => {
+      ws?.close()
+      clearTimeout(reconnectTimeout)
+    }
+  }, [])
+
+  const getStatusColor = (status: string) => {
+    switch(status) {
+      case 'online': return '#45ba50'
+      case 'idle': return '#d9a514'
+      case 'dnd': return '#FF2056'
+      default: return '#71717B'
+    }
+  }
+
+  const avatarUrl = discordData?.discord_user.avatar
+? `https://cdn.discordapp.com/avatars/${discordData.discord_user.id}/${discordData.discord_user.avatar}.png?size=4096`
+    : 'https://cdn.discordapp.com/embed/avatars/0.png'
+
+  const musicaAtual = discordData?.listening_to_spotify? discordData.spotify : ultimaMusica
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <main className="min-h-screen overflow-x-hidden antialiased"
+          style={{
+            backgroundColor: '#080503',
+            color: '#ede3d6',
+            fontFamily: 'Inter, sans-serif',
+            lineHeight: '24px'
+          }}>
+
+      <AnimatedBackground />
+
+      <AnimatePresence>
+        {!entrou && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center cursor-pointer"
+            style={{ backgroundColor: '#000' }}
+            onClick={() => setEntrou(true)}
+            exit={{ opacity: 0 }}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            <p className="tracking-[0.5em] text-xs font-light" style={{ color: '#8d7d6e' }}>
+              CLIQUE PARA REVELAR
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {entrou && (
+        <>
+          <InstagramModal open={igModalOpen} onClose={() => setIgModalOpen(false)} />
+
+          <motion.div
+  initial={{ y: 0, opacity: 1 }}
+  animate={controls}
+  className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-2 py-2 rounded-2xl bg-[#0F0B06] shadow-lg backdrop-blur-md"
+>
+  <nav>
+    <div className="flex items-center gap-1 relative">
+      {[
+        { id: 'home', label: 'Home', icon: User },
+        { id: 'sobre', label: 'Sobre', icon: Info },
+        { id: 'lazer', label: 'Lazer', icon: LazerIcon },
+        { id: 'amigos', label: 'Amigos', icon: Users },
+      ].map((tab) => {
+        const Icon = tab.icon
+        const isActive = activeTab === tab.id
+
+        return (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as any)}
+            className="relative px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 flex items-center gap-2 z-10 cursor-pointer"
+            style={{
+              color: isActive ? '#0F0B06' : '#8d7d6e',
+              fontFamily: 'Inter, "Inter Fallback"',
+              WebkitFontSmoothing: 'antialiased'
+            }}
           >
-            Documentation
-          </a>
-        </div>
-      </main>
+            {isActive && (
+              <motion.div
+                layoutId="activeTab"
+                className="absolute inset-0 bg-[#B5825F] rounded-full"
+                transition={{ duration: 0 }}
+              />
+            )}
+            <Icon size={16} strokeWidth={2} className="relative z-10" />
+            <span className="relative z-10">{tab.label}</span>
+          </button>
+        )
+      })}
     </div>
-  );
+  </nav>
+</motion.div>
+
+          <AnimatePresence initial={false} mode="sync">
+  {activeTab === 'home' && (
+    <motion.div
+      key="home"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }} // zero duration = some/aparece na hora
+      className="relative z-10 h-screen md:min-h-screen flex flex-col items-center justify-center px-14 pt-20 md:pt-22 pb-20 md:pb-32"
+    >
+      <HomeContent
+      
+        cardRef={cardRef}
+        handleMouseMove={handleMouseMove}
+        handleMouseLeave={handleMouseLeave}
+        isHovering={isHovering}
+        rotate={rotate}
+        discordData={discordData}
+        avatarUrl={avatarUrl}
+        getStatusColor={getStatusColor}
+        musicaAtual={musicaAtual}
+        setIgModalOpen={setIgModalOpen}
+      />
+    </motion.div>
+  )}
+
+  console.log('isPlaying:', spotify.isPlaying)
+
+  {activeTab === 'sobre' && (
+    <motion.div
+      key="sobre"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0 }}
+      className="relative z-10 min-h-screen px-6 pt-32 pb-20 max-w-4xl mx-auto"
+    >
+      <h1 className="text-4xl font-bold mb-6" style={{ color: '#ede3d6' }}>Sobre Mim</h1>
+      <div className="space-y-4" style={{ color: '#8d7d6e' }}>
+        <p>Reforming...</p>
+      </div>
+    </motion.div>
+  )}
+
+            {activeTab === 'lazer' && (
+              <motion.div
+                key="lazer"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+                className="relative z-10 min-h-screen px-6 pt-32 pb-20 max-w-4xl mx-auto"
+              >
+                <h1 className="text-4xl font-bold mb-6" style={{ color: '#ede3d6' }}>Lazer</h1>
+                <div className="space-y-4" style={{ color: '#8d7d6e' }}>
+                  <p>Reforming...</p>
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'amigos' && (
+              <motion.div
+                key="amigos"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+                className="relative z-10 min-h-screen px-6 pt-32 pb-20 max-w-4xl mx-auto"
+              >
+                <h1 className="text-4xl font-bold mb-6" style={{ color: '#ede3d6' }}>Meus Amigos</h1>
+                <div className="space-y-4" style={{ color: '#8d7d6e' }}>
+                  <p>Reforming...</p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </>
+      )}
+    </main>
+  )
 }
