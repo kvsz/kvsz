@@ -248,41 +248,32 @@ function HomeContent({
   discordData,
   avatarUrl,
   getStatusColor,
-  musicaAtual,
   setIgModalOpen
 }: any) {
-  // REMOVE: const spotify = useSpotify()
+  const spotify = useSpotify() // <- USA O HOOK AGORA
   
-  // ADICIONA: controle de progress manual
+  const isPlaying = spotify.isPlaying
   const [currentProgress, setCurrentProgress] = useState(0)
   
   useEffect(() => {
-    if (!discordData?.listening_to_spotify || !discordData?.spotify?.timestamps) {
+    if (!isPlaying || !spotify.timestampStart) {
       setCurrentProgress(0)
       return
     }
     
-    const { start, end } = discordData.spotify.timestamps
+    const { timestampStart, timestampEnd } = spotify
+    setCurrentProgress(Date.now() - timestampStart)
     
-    // Seta progresso inicial
-    const initialProgress = Date.now() - start
-    setCurrentProgress(initialProgress)
-    
-    // Atualiza a cada 1s
     const interval = setInterval(() => {
-      const now = Date.now()
-      const elapsed = now - start
-      const duration = end - start
+      const elapsed = Date.now() - timestampStart
+      const duration = spotify.duration || 0
       setCurrentProgress(Math.min(elapsed, duration))
     }, 1000)
     
     return () => clearInterval(interval)
-  }, [discordData?.spotify?.song, discordData?.spotify?.timestamps?.start]) // roda quando muda música
+  }, [spotify.song, spotify.timestampStart, isPlaying])
   
-  const isPlaying = discordData?.listening_to_spotify || false
-  const duration = discordData?.spotify?.timestamps 
-    ? discordData.spotify.timestamps.end - discordData.spotify.timestamps.start 
-    : 0
+  const duration = spotify.duration || 0
   const progressPercent = duration ? (currentProgress / duration) * 100 : 0
   
   return (
@@ -439,11 +430,11 @@ function HomeContent({
               <div className="flex gap-4">
                 <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
                   <img
-                    alt={musicaAtual?.song || 'Nenhuma música'}
+                    alt={spotify.song || 'Nenhuma música'}
                     loading="lazy"
                     decoding="async"
                     className="object-cover"
-                    src={musicaAtual?.album_art_url || 'https://i.scdn.co/image/ab67616d0000b27333c1f5879f6d6d2ce284a906'}
+                     src={spotify.albumArt || 'https://i.scdn.co/image/ab67616d0000b27333c1f5879f6d6d2ce284a906'}
                     style={{ position: 'absolute', height: '100%', width: '100%', inset: '0px' }}
                   />
                   <Equalizer isPlaying={isPlaying} />
@@ -459,10 +450,10 @@ function HomeContent({
                       WebkitFontSmoothing: 'antialiased'
                     }}
                   >
-                    {musicaAtual?.song || 'Nada tocando'}
+                    {spotify.song || 'Nada tocando'}
                   </h3>
                   <p className="text-sm truncate" style={{ color: '#8d7d6e' }}>
-                    {musicaAtual?.artist || '...'}
+                    {spotify.artist || '...'}
                   </p>
                   {isPlaying && duration > 0 ? (
                     <div className="mt-2 space-y-0.5">
@@ -486,7 +477,7 @@ function HomeContent({
                     </div>
                   ) : (
                     <p className="text-xs mt-1" style={{ color: '#8d7d6e' }}>
-                      {isPlaying ? 'Tocando agora' : 'Última música ouvida'}
+                      {spotify.fallback ? 'Última música ouvida' : 'Tocando agora'}
                     </p>
                   )}
                 </div>

@@ -8,6 +8,9 @@ type SpotifyData = {
   albumArt?: string
   progress?: number
   duration?: number
+  fallback?: boolean
+  timestampStart?: number
+  timestampEnd?: number
 }
 
 export function useSpotify() {
@@ -19,7 +22,6 @@ export function useSpotify() {
         const res = await fetch('/api/now-playing')
         if (!res.ok) return
         const json = await res.json()
-        // console.log('Dados do Spotify:', json) // <- REMOVIDO
         setData(json)
       } catch (e) {
         console.error('Erro ao buscar Spotify:', e)
@@ -27,8 +29,8 @@ export function useSpotify() {
     }
 
     fetchData()
-    // const interval = setInterval(fetchData, 1000) // <- REMOVIDO
-    // return () => clearInterval(interval) // <- REMOVIDO
+    const interval = setInterval(fetchData, 3000) // checa a cada 3s
+    return () => clearInterval(interval)
   }, [])
 
   return data
