@@ -434,7 +434,7 @@ function HomeContent({
                     loading="lazy"
                     decoding="async"
                     className="object-cover"
-                     src={spotify.albumArt || 'https://i.scdn.co/image/ab67616d0000b27333c1f5879f6d6d2ce284a906'}
+                     src={spotify.albumArt || ''}
                     style={{ position: 'absolute', height: '100%', width: '100%', inset: '0px' }}
                   />
                   <Equalizer isPlaying={isPlaying} />
