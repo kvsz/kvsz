@@ -403,85 +403,126 @@ function HomeContent({
               </div>
             </div>
 
-            <div className={`rounded-xl px-4 pt-4 border transition-all ${isPlaying ? 'pb-2' : 'pb-4'}`}
+                        {/* === SEÇÃO DE ATIVIDADE / SPOTIFY === */}
+            <div className={`rounded-xl px-4 pt-4 border transition-all ${isPlaying && discordData?.discord_status !== 'offline' ? 'pb-2' : 'pb-4'}`}
               style={{
                 backgroundColor: '#22181280',
                 borderColor: '#291f1880',
               }}
             >
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-1.5">
-                  <SpotifyIcon />
-                  <span className="text-xs uppercase tracking-wider font-medium"
-                        style={{ color: '#8d7d6e' }}>
-                    {isPlaying ? 'Ouvindo no Spotify' : 'Última atividade'}
-                  </span>
-                </div>
-                {isPlaying && (
-                  <div className="inline-flex items-center gap-2.5 rounded-full border px-2 py-0.5 text-xs border-emerald-500/30 text-emerald-400">
-                    <div className="relative flex items-center justify-center">
-                      <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping absolute" />
-                      <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full" />
-                    </div>
-                    Spotify
+                {discordData?.discord_status === 'offline' ? (
+                /* ==================== MODO OFFLINE ==================== */
+                <div className="space-y-3">
+                  {/* Linha OFFLINE com relógio */}
+                  <div className="flex items-center gap-1.5">
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="16" 
+                      height="16" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2                                    " 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round"
+                      className="text-[#8d7d6e]"
+                    >
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span className="text-xs uppercase tracking-wider text-[#8d7d6e] font-medium">
+                      Offline
+                    </span>
                   </div>
-                )}
-              </div>
-              <div className="flex gap-4">
-                <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
-                  <img
-                    alt={spotify.song || 'Nenhuma música'}
-                    loading="lazy"
-                    decoding="async"
-                    className="object-cover"
-                     src={spotify.albumArt || ''}
-                    style={{ position: 'absolute', height: '100%', width: '100%', inset: '0px' }}
-                  />
-                  <Equalizer isPlaying={isPlaying} />
-                </div>
-                <div className="flex-1 min-w-0 flex flex-col justify-center">
-                  <h3
-                    className="truncate text-sm"
-                    style={{
-                      color: '#E0D6C9',
-                      fontFamily: 'Inter, "Inter Fallback"',
-                      fontSize: '14px',
-                      fontWeight: 500,
-                      WebkitFontSmoothing: 'antialiased'
-                    }}
-                  >
-                    {spotify.song || 'Nada tocando'}
-                  </h3>
-                  <p className="text-sm truncate" style={{ color: '#8d7d6e' }}>
-                    {spotify.artist || '...'}
-                  </p>
-                  {isPlaying && duration > 0 ? (
-                    <div className="mt-2 space-y-0.5">
-                      <div className="h-1 rounded-full overflow-hidden" style={{ backgroundColor: '#8d7d6e33' }}>
-                        <div
-                          className="h-full rounded-full"
-                          style={{
-                            backgroundColor: '#00BC7D',
-                            width: `${progressPercent}%`,
-                            transition: 'width 1000ms linear'
-                          }}
-                        />
-                      </div>
-                      <div className="flex justify-between font-mono" style={{ 
-                        fontSize: '10px',
-                        color: '#8d7d6e'
-                      }}>
-                        <span>{formatTime(currentProgress)}</span>
-                        <span>{formatTime(duration)}</span>
-                      </div>
+
+                  {/* Caixa de Nada acontecendo */}
+                  <div className="rounded-xl bg-[#1A120C] p-4 flex items-center gap-3">
+                    <div className="flex-shrink-0">
+                      <span className="text-2xl opacity-40">💤</span>
                     </div>
-                  ) : (
-                    <p className="text-xs mt-1" style={{ color: '#8d7d6e' }}>
-                      {spotify.fallback ? 'Última música ouvida' : 'Tocando agora'}
-                    </p>
-                  )}
+                    <div>
+                      <p className="text-sm font-medium" style={{ color: '#ede3d6' }}>
+                        Nada acontecendo
+                      </p>
+                      <p className="text-xs" style={{ color: '#8d7d6e' }}>
+                        AFK nesse momento
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                /* ==================== MODO NORMAL (Spotify ou última música) ==================== */
+                <>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-1.5">
+                      <SpotifyIcon />
+                      <span className="text-xs uppercase tracking-wider font-medium"
+                            style={{ color: '#8d7d6e' }}>
+                        {isPlaying ? 'Ouvindo no Spotify' : 'Última atividade'}
+                      </span>
+                    </div>
+
+                    {isPlaying && (
+                      <div className="inline-flex items-center gap-2.5 rounded-full border px-2 py-0.5 text-xs border-emerald-500/30 text-emerald-400">
+                        <div className="relative flex items-center justify-center">
+                          <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping absolute" />
+                          <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full" />
+                        </div>
+                        Spotify
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex gap-4">
+                    <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+                      <img
+                        alt={spotify.song || 'Nenhuma música'}
+                        loading="lazy"
+                        decoding="async"
+                        className="object-cover"
+                        src={spotify.albumArt || ''}
+                        style={{ position: 'absolute', height: '100%', width: '100%', inset: '0px' }}
+                      />
+                      <Equalizer isPlaying={isPlaying} />
+                    </div>
+
+                    <div className="flex-1 min-w-0 flex flex-col justify-center">
+                      <h3
+                        className="truncate text-sm"
+                        style={{ color: '#E0D6C9', fontWeight: 500 }}
+                      >
+                        {spotify.song || 'Nada tocando'}
+                      </h3>
+                      <p className="text-sm truncate" style={{ color: '#8d7d6e' }}>
+                        {spotify.artist || '...'}
+                      </p>
+
+                      {isPlaying && duration > 0 ? (
+                        <div className="mt-2 space-y-0.5">
+                          <div className="h-1 rounded-full overflow-hidden" style={{ backgroundColor: '#8d7d6e33' }}>
+                            <div
+                              className="h-full rounded-full"
+                              style={{
+                                backgroundColor: '#00BC7D',
+                                width: `${progressPercent}%`,
+                                transition: 'width 1000ms linear'
+                              }}
+                            />
+                          </div>
+                          <div className="flex justify-between font-mono text-[10px]" style={{ color: '#8d7d6e' }}>
+                            <span>{formatTime(currentProgress)}</span>
+                            <span>{formatTime(duration)}</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-xs mt-1" style={{ color: '#8d7d6e' }}>
+                          {spotify.fallback ? 'Última música ouvida' : 'Tocando agora'}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </motion.div>
