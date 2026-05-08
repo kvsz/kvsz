@@ -110,7 +110,7 @@ function InstagramModal({ open, onClose }: { open: boolean; onClose: () => void 
     avatar: 'https://scontent.cdninstagram.com/v/t51.82787-19/693949149_18091884485218207_2396624145461042148_n.jpg?stp=dst-jpg_s150x150_tt6&_nc_cat=110&ccb=7-5&_nc_sid=f7ccc5&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLnd3dy43MzYuQzMifQ%3D%3D&_nc_ohc=nAq_ce-GRWUQ7kNvwEZ8HBK&_nc_oc=Ados1tT6TFkSXG9DtaS2WHR25niZrO4q0DrtrkH8SGO6N4haIFUWfmBePY2BA9aIqeI&_nc_zt=24&_nc_ht=scontent.cdninstagram.com&_nc_gid=qDxSsSu5Mifz9MPvby6xTA&_nc_ss=7b6a8&oh=00_Af5HfQXhWQZ0KACWICI0h860RWmwqZdaAm8wC0imwgKQwg&oe=6A030FFC',
     posts: 0,
     followers: 23,
-    following: 27
+    following: 29
   }
 
   useEffect(() => {
