@@ -1,26 +1,87 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --radius: .75rem;
+
+  --background: lab(1.55178% .640653 1.00339);
+  --foreground: lab(90.7505% 1.8031 7.45089);
+
+  --primary: lab(59.0642% 17.2913 27.0713);
+  --primary-foreground: lab(1.55178% .640653 1.00339);
+
+  --secondary: lab(9.42224% 4.6284 5.83762);
+  --secondary-foreground: lab(82.6048% 3.65719 10.9626);
+
+  --muted: lab(7.17475% 2.9778 4.01724);
+  --muted-foreground: lab(53.5643% 4.57534 10.6701);
+
+  --accent: lab(47.1415% 26.2977 30.4822);
+  --accent-foreground: lab(94.217% .869393 3.70355);
+
+  --border: lab(12.9251% 4.15897 6.54917);
+
+  --card: lab(5.22872% 2.51955 3.02221);
+  --card-foreground: lab(90.7505% 1.8031 7.45089);
+
+  --popover: lab(2.45779% 1.18386 1.55427);
+  --popover-foreground: lab(90.7505% 1.8031 7.45089);
+
+  --input: lab(7.17475% 2.9778 4.01724);
+  --ring: lab(47.4458% 17.612 27.6482);
+
+  --surface: lab(5.22521% 2.43863 3.22101);
+  --surface-hover: lab(9.44277% 4.20167 6.20367);
+
+  --glow: lab(59.0642% 17.2913 27.0713 / 0.3);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-border: var(--border);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-2xl: 1rem;
+
+  --font-sans: "Inter", "Inter Fallback", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Inter", "Inter Fallback", sans-serif;
 }

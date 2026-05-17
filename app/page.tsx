@@ -3,10 +3,12 @@ import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence, useAnimation } from 'framer-motion'
 import AnimatedBackground from './AnimatedBackground'
 import { useSpotify } from '@/hooks/useSpotify'
+import MusicTab from './components/MusicTab'
+import MoviesTab from './components/MoviesTab'
 import { inter } from '@/app/layout'
 import {
   User, Info, Gamepad, Users, Calendar, Music,
-  MessageCircle, Disc, Headphones, Instagram
+  MessageCircle, Disc, Headphones, Instagram, Film
 } from 'lucide-react'
 
 type SpotifyData = {
@@ -107,10 +109,10 @@ function InstagramModal({ open, onClose }: { open: boolean; onClose: () => void 
 
   const igData: InstagramData = {
     username: '21scy',
-    avatar: 'https://scontent.cdninstagram.com/v/t51.82787-19/693949149_18091884485218207_2396624145461042148_n.jpg?stp=dst-jpg_s150x150_tt6&_nc_cat=110&ccb=7-5&_nc_sid=f7ccc5&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLnd3dy43MzYuQzMifQ%3D%3D&_nc_ohc=nAq_ce-GRWUQ7kNvwEZ8HBK&_nc_oc=Ados1tT6TFkSXG9DtaS2WHR25niZrO4q0DrtrkH8SGO6N4haIFUWfmBePY2BA9aIqeI&_nc_zt=24&_nc_ht=scontent.cdninstagram.com&_nc_gid=qDxSsSu5Mifz9MPvby6xTA&_nc_ss=7b6a8&oh=00_Af5HfQXhWQZ0KACWICI0h860RWmwqZdaAm8wC0imwgKQwg&oe=6A030FFC',
+    avatar: 'https://scontent.cdninstagram.com/v/t51.82787-19/696012321_18092532014218207_2150599134120565886_n.jpg?stp=dst-jpg_s150x150_tt6&_nc_cat=108&ccb=7-5&_nc_sid=f7ccc5&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLnd3dy43MzYuQzMifQ%3D%3D&_nc_ohc=SwuSAqRHMyUQ7kNvwGAEFLu&_nc_oc=AdozngtmHpEfEW2WXbny64lMCbfONSLwyQvf5X8Wi_5D6tZYv6OIMCJqTsCn1Bfq9es&_nc_zt=24&_nc_ht=scontent.cdninstagram.com&_nc_gid=oaNpUrSioyHlrReo6wX72A&_nc_ss=7b6a8&oh=00_Af59eG_h1-5CPTwudK1O4_FzYsFeNIb1OysWzGhHvNLjug&oe=6A0B4107',
     posts: 0,
-    followers: 23,
-    following: 29
+    followers: 24,
+    following: 27
   }
 
   useEffect(() => {
@@ -251,6 +253,7 @@ function HomeContent({
   setIgModalOpen
 }: any) {
   const spotify = useSpotify() // <- USA O HOOK AGORA
+  const [profileModalOpen, setProfileModalOpen] = useState(false)
   
   const isPlaying = spotify.isPlaying
   const [currentProgress, setCurrentProgress] = useState(0)
@@ -340,27 +343,53 @@ function HomeContent({
 
           <div className="px-6 pb-6">
             <div className="flex items-end justify-between -mt-12 mb-4">
-              <div className="relative">
-                <div className="w-24 h-24 rounded-full border-4 overflow-hidden"
-                     style={{ borderColor: '#120c07', backgroundColor: '#221812' }}>
-                  <img
-                    alt={discordData?.discord_user.global_name || '07'}
-                    loading="lazy"
-                    width="96"
-                    height="96"
-                    decoding="async"
-                    className="object-cover w-full h-full"
-                    src={avatarUrl}
-                  />
-                </div>
-                <div
-                  className="absolute bottom-1 right-1 w-6 h-6 rounded-full border-4"
-                  style={{
-                    backgroundColor: getStatusColor(discordData?.discord_status || 'offline'),
-                    borderColor: '#120c07'
-                  }}
-                />
-              </div>
+              <motion.div
+  className="relative"
+  style={{
+    transform: 'translateZ(0px)',
+    transition: 'transform 0.3s ease-out',
+  }}
+>
+  <motion.div
+    className="w-24 h-24 rounded-full border-4 overflow-hidden bg-[#221812] cursor-pointer"
+    style={{ borderColor: '#120c07' }}
+    onClick={() => setProfileModalOpen(true)}
+    whileHover={{
+      scale: 1.15,
+      rotate: 5,
+    }}
+    transition={{
+      type: 'spring',
+      stiffness: 300,
+      damping: 20,
+    }}
+  >
+    <motion.img
+      alt={discordData?.discord_user.global_name || '07'}
+      loading="lazy"
+      width="96"
+      height="96"
+      decoding="async"
+      className="object-cover w-full h-full"
+      src={avatarUrl}
+      whileHover={{
+        scale: 1.4,
+      }}
+      transition={{
+        duration: 0.5,
+        ease: 'easeOut',
+      }}
+    />
+  </motion.div>
+
+  <div
+    className="absolute bottom-1 right-1 w-6 h-6 rounded-full border-4"
+    style={{
+      backgroundColor: getStatusColor(discordData?.discord_status || 'offline'),
+      borderColor: '#120c07',
+    }}
+  />
+</motion.div>
 
               <div className="flex items-center gap-1.5 mb-8 rounded-lg px-3 py-2 max-w-[60%] z-50 overflow-x-auto"
                    style={{ backgroundColor: '#221812CC' }}>
@@ -613,6 +642,86 @@ function HomeContent({
               style={{ backgroundColor: '#b5825f', color: '#080503' }}>
         <Music size={18} />
       </button>
+
+      <AnimatePresence>
+  {profileModalOpen && (
+    <>
+      <motion.div
+        className="fixed inset-0 z-[80] bg-black/70"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.18 }}
+        onClick={() => setProfileModalOpen(false)}
+      />
+
+      <motion.div
+        className="fixed top-1/2 left-1/2 z-[90] w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-lg border border-[#291f18] bg-[#120c07] p-6 shadow-lg"
+        initial={{ opacity: 0, scale: 0.88 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{
+          type: 'spring',
+          stiffness: 260,
+          damping: 24,
+          duration: 0.35,
+        }}
+      >
+        <button
+          onClick={() => setProfileModalOpen(false)}
+          className="absolute top-4 right-4 z-20 text-[#8d7d6e] hover:text-[#ede3d6] transition-opacity"
+        >
+          ✕
+        </button>
+
+        <div className="relative">
+          <div className="absolute inset-0 bg-gradient-to-br from-[#b5825f20] via-[#a15d3e20] to-[#22181220] blur-xl" />
+
+          <div className="relative bg-[#120c07]/50 rounded-2xl p-8 border border-[#291f18]">
+            <div className="relative mx-auto w-64 h-64 mb-6">
+              <div className="relative w-full h-full">
+                <motion.div
+  className="absolute inset-0 rounded-full bg-gradient-to-tr from-[#b5825f] via-[#a15d3e] to-[#221812]"
+  animate={{
+    scale: [1, 1.007, 1],
+    opacity: [0.85, 1, 0.85],
+  }}
+  transition={{
+    duration: 2,
+    repeat: Infinity,
+    ease: 'easeInOut',
+  }}
+/>
+
+                <div className="absolute inset-1 bg-[#120c07] rounded-full overflow-hidden">
+                  <img
+                    src={avatarUrl.replace('size=4096', 'size=512')}
+                    alt={discordData?.discord_user.global_name || '07'}
+                    className="object-cover w-full h-full"
+                    loading="eager"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-foreground mb-1">
+                {discordData?.discord_user.global_name || '07'}
+              </h2>
+
+              <p
+  className="font-mono"
+  style={{ color: 'lab(53.5643 4.57534 10.6701)' }}
+>
+                @{discordData?.discord_user.username || 'krov'}
+              </p>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </>
+  )}
+</AnimatePresence>
     </div>
   )
 }
@@ -620,10 +729,13 @@ function HomeContent({
 export default function Home() {
 
   const [entrou, setEntrou] = useState(false)
+  
+  
   const [discordData, setDiscordData] = useState<LanyardData | null>(null)
   const [ultimaMusica, setUltimaMusica] = useState<SpotifyData | null>(null)
   const [igModalOpen, setIgModalOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'home' | 'sobre' | 'lazer' | 'amigos'>('home')
+  const [lazerTab, setLazerTab] = useState<'musica' | 'filmes'>('musica')
   const DISCORD_ID = '1184191270248251512'
   const controls = useAnimation()
   const isFirstRender = useRef(true)
@@ -632,6 +744,7 @@ export default function Home() {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovering, setIsHovering] = useState(false);
   const [rotate, setRotate] = useState({ x: 0, y: 0 });
+  const [revealing, setRevealing] = useState(false)
   const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -753,20 +866,66 @@ export default function Home() {
 
       <AnimatedBackground />
 
-      <AnimatePresence>
-        {!entrou && (
-          <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center cursor-pointer"
-            style={{ backgroundColor: '#000' }}
-            onClick={() => setEntrou(true)}
-            exit={{ opacity: 0 }}
-          >
-            <p className="tracking-[0.5em] text-xs font-light" style={{ color: '#8d7d6e' }}>
-              CLIQUE PARA REVELAR
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <AnimatePresence mode="wait">
+  {!entrou && (
+    <motion.div
+    key="reveal-overlay"
+      initial={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.6 }}
+      onClick={() => {
+  setRevealing(true)
+  setTimeout(() => setEntrou(true), 650)
+}}
+      className="fixed inset-0 z-[10000] flex items-center justify-center bg-background cursor-pointer"
+    >
+      <motion.div
+  initial={{ opacity: 0, scale: 1 }}
+  animate={
+    revealing
+      ? { opacity: [1, 1, 0], scale: [1, 1.12, 0.35] }
+      : { opacity: 1, scale: 1 }
+  }
+  transition={{
+    duration: revealing ? 0.65 : 0.3,
+    ease: 'easeInOut',
+    delay: revealing ? 0 : 0.3,
+  }}
+  className="relative"
+>
+        <motion.div
+          animate={{ opacity: [0.2, 0.5, 0.2], scale: [1, 1.4, 1] }}
+          transition={{ duration: 2.5, ease: 'easeInOut', repeat: Infinity }}
+          className="absolute inset-0 rounded-full blur-3xl bg-primary/20"
+        />
+
+        <motion.div
+          animate={{ opacity: [0.3, 0.6, 0.3], scale: [1.2, 1, 1.2] }}
+          transition={{ delay: 0.3, duration: 2.5, ease: 'easeInOut', repeat: Infinity }}
+          className="absolute inset-0 rounded-full blur-2xl bg-primary/15"
+        />
+
+        <motion.p
+          animate={
+  revealing
+    ? { opacity: 0 }
+    : {
+        color: ['#57504a', '#aca298', '#57504a'],
+      }
+}
+          transition={{ duration: 2.5, ease: 'easeInOut', repeat: Infinity }}
+          className="relative text-2xl font-thin tracking-[0.3em] text-foreground/90 select-none uppercase antialiased"
+          style={{
+  WebkitFontSmoothing: 'antialiased',
+  MozOsxFontSmoothing: 'grayscale',
+}}
+        >
+          clique para revelar
+        </motion.p>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
 
       {entrou && (
         <>
@@ -815,7 +974,7 @@ export default function Home() {
   </nav>
 </motion.div>
 
-          <AnimatePresence initial={false} mode="sync">
+          <>
   {activeTab === 'home' && (
     <motion.div
       key="home"
@@ -840,8 +999,6 @@ export default function Home() {
     </motion.div>
   )}
 
-  console.log('isPlaying:', spotify.isPlaying)
-
   {activeTab === 'sobre' && (
     <motion.div
       key="sobre"
@@ -858,29 +1015,72 @@ export default function Home() {
   )}
 
             {activeTab === 'lazer' && (
-              <motion.div
-                key="lazer"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-                className="relative z-10 min-h-screen px-6 pt-32 pb-20 max-w-4xl mx-auto"
-              >
-                <h1 className="text-4xl font-bold mb-6" style={{ color: '#ede3d6' }}>Lazer</h1>
-                <div className="space-y-4" style={{ color: '#8d7d6e' }}>
-                  <p>Reforming...</p>
-                </div>
-              </motion.div>
-            )}
+  <motion.div
+    key="lazer"
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -20 }}
+    transition={{ duration: 0.3 }}
+    className="relative z-10 min-h-screen px-6 pt-32 pb-20 max-w-[1300px] mx-auto"  
+  >
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="mb-6"
+    >
+      <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-1">
+        Lazer
+      </h1>
+
+      <p className="text-muted-foreground flex items-center gap-2">
+        O que eu ando curtindo
+      </p>
+
+      <div className="mt-4 flex items-center gap-1 p-1 rounded-[calc(var(--radius)+4px)] bg-secondary/40 border border-border/50 w-fit">
+        <button
+  onClick={() => setLazerTab('musica')}
+  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+    lazerTab === 'musica'
+      ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
+      : 'text-muted-foreground hover:text-foreground hover:bg-secondary/60'
+  }`}
+>
+  <Music className="w-4 h-4" />
+  Música
+</button>
+
+        <button
+  onClick={() => setLazerTab('filmes')}
+  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+    lazerTab === 'filmes'
+      ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
+      : 'text-muted-foreground hover:text-foreground hover:bg-secondary/60'
+  }`}
+>
+  <Film className="w-4 h-4" />
+  Filmes & Séries
+</button>
+      </div>
+    </motion.div>
+
+    <div className={lazerTab === 'musica' ? 'block' : 'hidden'}>
+  <MusicTab />
+</div>
+
+<div className={lazerTab === 'filmes' ? 'block' : 'hidden'}>
+  <MoviesTab />
+</div>
+  </motion.div>
+)}
 
             {activeTab === 'amigos' && (
               <motion.div
                 key="amigos"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3 }}
-                className="relative z-10 min-h-screen px-6 pt-32 pb-20 max-w-4xl mx-auto"
+                className="relative z-10 min-h-screen px-6 pt-32 pb-20 max-w-[1300px] mx-auto"
               >
                 <h1 className="text-4xl font-bold mb-6" style={{ color: '#ede3d6' }}>Meus Amigos</h1>
                 <div className="space-y-4" style={{ color: '#8d7d6e' }}>
@@ -888,7 +1088,7 @@ export default function Home() {
                 </div>
               </motion.div>
             )}
-          </AnimatePresence>
+          </>
         </>
       )}
     </main>
