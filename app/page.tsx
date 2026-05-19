@@ -109,10 +109,10 @@ function InstagramModal({ open, onClose }: { open: boolean; onClose: () => void 
 
   const igData: InstagramData = {
     username: '21scy',
-    avatar: 'https://scontent.cdninstagram.com/v/t51.82787-19/696012321_18092532014218207_2150599134120565886_n.jpg?stp=dst-jpg_s150x150_tt6&_nc_cat=108&ccb=7-5&_nc_sid=f7ccc5&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLnd3dy43MzYuQzMifQ%3D%3D&_nc_ohc=SwuSAqRHMyUQ7kNvwGAEFLu&_nc_oc=AdozngtmHpEfEW2WXbny64lMCbfONSLwyQvf5X8Wi_5D6tZYv6OIMCJqTsCn1Bfq9es&_nc_zt=24&_nc_ht=scontent.cdninstagram.com&_nc_gid=oaNpUrSioyHlrReo6wX72A&_nc_ss=7b6a8&oh=00_Af59eG_h1-5CPTwudK1O4_FzYsFeNIb1OysWzGhHvNLjug&oe=6A0B4107',
+    avatar: 'https://cdn.discordapp.com/avatars/1184191270248251512/a41e7a32c9c9694b0689209c7ed42e40.png?size=512',
     posts: 0,
-    followers: 24,
-    following: 29
+    followers: 23,
+    following: 30
   }
 
   useEffect(() => {
