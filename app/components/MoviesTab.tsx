@@ -43,6 +43,18 @@ export default function MoviesTab() {
   const [expandedOverview, setExpandedOverview] = useState(false)
 
   useEffect(() => {
+  if (selectedItem) {
+    document.body.style.overflow = 'hidden'
+  } else {
+    document.body.style.overflow = ''
+  }
+
+  return () => {
+    document.body.style.overflow = ''
+  }
+}, [selectedItem])
+
+  useEffect(() => {
     async function fetchMovies() {
       const apiKey = process.env.NEXT_PUBLIC_TMDB_API_KEY
 
@@ -800,7 +812,11 @@ const filteredItems = items.filter((item: any) => {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      <div
+  className={`flex-1 overflow-x-hidden pr-2 ${
+    expandedOverview ? 'overflow-y-auto' : 'overflow-y-hidden'
+  }`}
+>
         <div className="p-5 sm:p-7 space-y-6">
           <div className="flex items-center gap-3 flex-wrap">
             <span className="text-sm font-bold text-emerald-500">
@@ -908,17 +924,17 @@ const filteredItems = items.filter((item: any) => {
 
 {(selectedItem.director || selectedItem.creator) && (
   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-    <div className="rounded-xl bg-secondary/30 border border-border/50 p-3">
-      <p className="text-[10px] text-muted-foreground uppercase font-bold flex items-center gap-1">
+    <div className="px-3 py-2.5 rounded-2xl bg-muted/30 border border-border/30">
+      <p className="text-[9px] text-muted-foreground/50 uppercase tracking-wider font-medium flex items-center gap-1 mb-1">
         {selectedItem.type === 'movie' ? (
-  <Camera className="w-3 h-3" />
+  <Camera className="w-3 h-3 text-[#b5825f]/60" />
 ) : (
   <Clapperboard className="w-3 h-3 text-primary/60" />
 )}
         {selectedItem.type === 'movie' ? 'Direção' : 'Criação'}
       </p>
 
-      <p className="text-sm font-medium text-foreground mt-1">
+      <p className="text-xs font-medium leading-snug line-clamp-2">
         {selectedItem.director || selectedItem.creator}
       </p>
     </div>
@@ -932,12 +948,12 @@ const filteredItems = items.filter((item: any) => {
       : 'grid-cols-2 sm:grid-cols-3'
   }`}
 >
-  <div className="rounded-xl bg-secondary/30 border border-border/50 p-3">
-    <p className="text-[10px] text-muted-foreground uppercase font-bold">
+  <div className="px-3 py-2.5 rounded-2xl bg-muted/40 border border-border/30">
+    <p className="text-[9px] text-[#4a4036] uppercase tracking-[0.em] font-medium leading-none mb-1">
       Ano
     </p>
 
-    <p className="text-sm font-black text-foreground">
+    <p className="text-sm font-medium text-foreground">
       {selectedItem.type === 'movie'
         ? (selectedItem.release_date || '').slice(0, 4)
         : `${(selectedItem.first_air_date || '').slice(0, 4)}-${(selectedItem.last_air_date || '').slice(0, 4)}`}
@@ -945,12 +961,12 @@ const filteredItems = items.filter((item: any) => {
   </div>
 
   {selectedItem.type === 'movie' && selectedItem.runtime && (
-    <div className="rounded-xl bg-secondary/30 border border-border/50 p-3">
-      <p className="text-[10px] text-muted-foreground uppercase font-bold">
+    <div className="px-3 py-2.5 rounded-2xl bg-muted/40 border border-border/30">
+      <p className="text-[9px] text-[#4a4036] uppercase tracking-[0.em] font-medium leading-none mb-1">
         Duração
       </p>
 
-      <p className="text-sm font-black text-foreground">
+      <p className="text-sm font-medium text-foreground">
         {Math.floor(selectedItem.runtime / 60)}h{' '}
         {selectedItem.runtime % 60}m
       </p>
@@ -959,34 +975,34 @@ const filteredItems = items.filter((item: any) => {
 
   {selectedItem.type === 'tv' && (
     <>
-      <div className="rounded-xl bg-secondary/30 border border-border/50 p-3">
-        <p className="text-[10px] text-muted-foreground uppercase font-bold">
+      <div className="px-3 py-2.5 rounded-2xl bg-muted/40 border border-border/30">
+        <p className="text-[9px] text-[#4a4036] uppercase tracking-[0.em] font-medium leading-none mb-1">
           Temporadas
         </p>
 
-        <p className="text-sm font-black text-foreground">
+        <p className="text-sm font-medium text-foreground">
           {selectedItem.number_of_seasons}
         </p>
       </div>
 
-      <div className="rounded-xl bg-secondary/30 border border-border/50 p-3">
-        <p className="text-[10px] text-muted-foreground uppercase font-bold">
+      <div className="px-3 py-2.5 rounded-2xl bg-muted/40 border border-border/30">
+        <p className="text-[9px] text-[#4a4036] uppercase tracking-[0.em] font-medium leading-none mb-1">
           Episódios
         </p>
 
-        <p className="text-sm font-black text-foreground">
+        <p className="text-sm font-medium text-foreground">
           {selectedItem.number_of_episodes}
         </p>
       </div>
     </>
   )}
 
-  <div className="rounded-xl bg-secondary/30 border border-border/50 p-3">
-    <p className="text-[10px] text-muted-foreground uppercase font-bold">
+  <div className="px-3 py-2.5 rounded-2xl bg-muted/40 border border-border/30">
+    <p className="text-[9px] text-[#4a4036] uppercase tracking-[0.em] font-medium leading-none mb-1">
       TMDb
     </p>
 
-    <p className="text-sm font-black text-foreground">
+    <p className="text-sm font-medium text-foreground">
       {selectedItem.vote_average.toFixed(1)}
     </p>
   </div>
