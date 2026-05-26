@@ -390,7 +390,7 @@ function HomeContent({
     }}
   />
 </motion.div>
-
+               {/*BADGES DO CARD PRINCIPAL 
               <div className="flex items-center gap-1.5 mb-8 rounded-lg px-3 py-2 max-w-[60%] z-50 overflow-x-auto"
                    style={{ backgroundColor: '#221812CC' }}>
                 <button data-state="closed" data-slot="tooltip-trigger">
@@ -409,8 +409,9 @@ function HomeContent({
                     <img alt="Last Meadow Online" loading="lazy" width="20" height="20" decoding="async" className="object-contain relative z-10" src="https://cdn.discordapp.com/badge-icons/ca105ad9cfc8580c765101d17bbb2323.png" />
                   </div>
                 </button>
-              </div>
+              </div>*/}
             </div>
+            
 
             <div className="mb-4">
               <h1 className="text-2xl font-bold" style={{ color: '#ede3d6' }}>
