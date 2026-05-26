@@ -109,7 +109,7 @@ function InstagramModal({ open, onClose }: { open: boolean; onClose: () => void 
 
   const igData: InstagramData = {
     username: '21scy',
-    avatar: 'https://cdn.discordapp.com/avatars/1184191270248251512/a41e7a32c9c9694b0689209c7ed42e40.png?size=512',
+    avatar: 'https://i.pinimg.com/736x/88/e5/30/88e53008571209403287e72da264710e.jpg',
     posts: 0,
     followers: 23,
     following: 30
