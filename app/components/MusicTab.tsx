@@ -72,6 +72,14 @@ const manualTrackImages: Record<string, string> = {
 
 } 
 
+const manualArtistImages: Record<string, string> = {
+  'Thorne':
+    'https://i.scdn.co/image/ab67616d000048516f4e4c07e8178879bb375fd2',
+
+  'Worm':
+    'https://i.scdn.co/image/ab67616d0000e1a3a135b1675cb2d905dfb8862d',
+}
+
 export default function MusicTab() {
   const [user, setUser] = useState<any>(null)
   const [topArtist, setTopArtist] = useState<any>(null)
@@ -121,7 +129,9 @@ setTopTracks(tracksWithImages)
 const artistsWithAppleImages = await Promise.all(
   (artistsData.topartists?.artist || []).map(async (artist: any) => ({
     ...artist,
-    appleImage: await getAppleMusicImage(artist.name)
+    appleImage:
+      manualArtistImages[artist.name] ||
+      await getAppleMusicImage(artist.name)
   }))
 )
 
