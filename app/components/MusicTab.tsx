@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Headphones, Users, Library, ListMusic, ExternalLink, 
-  Calendar, TrendingUp, Star, Crown, Play, Radio, LoaderCircle, Music, X, Globe, Percent, ChartColumn, Sparkles, MicVocal, Disc3, Clock3, ChevronDown, ChevronUp 
+  Calendar, TrendingUp, Star, Crown, Play, Radio, LoaderCircle, Music, X, Globe, Percent, ChartColumn, Sparkles, MicVocal, Disc3, Clock3, ChevronDown, ChevronUp, Tag 
 } from 'lucide-react'
 
 const USERNAME = 'l9ve'
@@ -14,6 +14,15 @@ const formatShort = (num: number): string => {
   if (num >= 1000) return (num / 1000).toFixed(1).replace('.0', '') + 'K'
   return num.toLocaleString()
 }
+
+const normalizeLastFmArtist = (artistName: string) => {
+  if (artistName === 'The Goo Goo Dolls') {
+    return 'Goo Goo Dolls'
+  }
+
+  return artistName
+}
+
 
 const getAppleMusicImage = async (artistName: string) => {
   try {
@@ -70,6 +79,9 @@ const manualTrackImages: Record<string, string> = {
    'Here Is Gone|The Goo Goo Dolls':
    'https://i.scdn.co/image/ab67616d000048519923ca569ea4d53394c0146e',
 
+   'golden retriever|Thorne':
+  'https://i.scdn.co/image/ab67616d00001e026f4e4c07e8178879bb375fd2',
+
 } 
 
 const manualArtistImages: Record<string, string> = {
@@ -80,11 +92,40 @@ const manualArtistImages: Record<string, string> = {
     'https://i.scdn.co/image/ab67616d0000e1a3a135b1675cb2d905dfb8862d',
 }
 
+const manualAlbumImages: Record<string, string> = {
+  'everything repeats|Marceline':
+    'https://i.scdn.co/image/ab67616d00001e022bcab0a1c1049ab6fb434f19',
+
+  'goddess|Thorne':
+    'https://i.scdn.co/image/ab67616d00001e026f4e4c07e8178879bb375fd2',
+}
+
+const manualAlbumDurations: Record<string, number> = {
+  'goddess|Thorne': 9,
+  'everything repeats|Marceline': 12,
+}
+
+const manualTrackDurations: Record<string, string> = {
+  'goddess|Thorne|it\'s different': '1:39',
+  'goddess|Thorne|golden retriever': '2:01',
+  'goddess|Thorne|goddess': '1:10',
+
+  'everything repeats|Marceline|marcymas': '1:39',
+  'everything repeats|Marceline|influenced (feat. bastard)': '2:02',
+  'everything repeats|Marceline|my dear': '2:13',
+  'everything repeats|Marceline|ruin my world': '2:28',
+}
+
 export default function MusicTab() {
   const [user, setUser] = useState<any>(null)
   const [topArtist, setTopArtist] = useState<any>(null)
 const [topArtists, setTopArtists] = useState<any[]>([])
 const [topTracks, setTopTracks] = useState<any[]>([])
+const [topAlbums, setTopAlbums] = useState<any[]>([])
+const [selectedAlbum, setSelectedAlbum] = useState<any>(null)
+const [selectedAlbumInfo, setSelectedAlbumInfo] = useState<any>(null)
+const [albumTracks, setAlbumTracks] = useState<any[]>([])
+const [showFullAlbumBio, setShowFullAlbumBio] = useState(false)
 const [selectedTrack, setSelectedTrack] = useState<any>(null)
 const [selectedTrackInfo, setSelectedTrackInfo] = useState<any>(null)
 const [similarTracks, setSimilarTracks] = useState<any[]>([])
@@ -101,13 +142,14 @@ const [similarArtists, setSimilarArtists] = useState<any[]>([])
         const [userRes, artistsRes, albumsRes, tracksRes] = await Promise.all([
   fetch(`https://ws.audioscrobbler.com/2.0/?method=user.getinfo&user=${USERNAME}&api_key=${API_KEY}&format=json`),
   fetch(`https://ws.audioscrobbler.com/2.0/?method=user.gettopartists&user=${USERNAME}&api_key=${API_KEY}&limit=5&format=json`),
-  fetch(`https://ws.audioscrobbler.com/2.0/?method=user.gettopalbums&user=${USERNAME}&api_key=${API_KEY}&limit=1&format=json`),
+  fetch(`https://ws.audioscrobbler.com/2.0/?method=user.gettopalbums&user=${USERNAME}&api_key=${API_KEY}&limit=10&format=json`),
   fetch(`https://ws.audioscrobbler.com/2.0/?method=user.gettoptracks&user=${USERNAME}&api_key=${API_KEY}&limit=10&format=json`)
 ])
 
 const userData = await userRes.json()
 const artistsData = await artistsRes.json()
 const albumsData = await albumsRes.json()
+setTopAlbums(albumsData.topalbums?.album || [])
 const tracksData = await tracksRes.json()
 
 const tracksWithImages = await Promise.all(
@@ -203,27 +245,71 @@ setSimilarArtists(similarArtistsData.similarartists?.artist || [])
 }, [selectedTrack])
 
 useEffect(() => {
-  const navbar = document.querySelector('nav')
+  if (!selectedAlbum) return
 
-  if (selectedTrack) {
+  const fetchAlbumDetails = async () => {
+    const artist = normalizeLastFmArtist(selectedAlbum.artist?.name || '')
+    const album = selectedAlbum.name
+
+    try {
+      const [albumRes, artistRes, artistTopRes, similarArtistsRes] =
+        await Promise.all([
+          fetch(`https://ws.audioscrobbler.com/2.0/?method=album.getInfo&api_key=${API_KEY}&artist=${encodeURIComponent(artist)}&album=${encodeURIComponent(album)}&username=${USERNAME}&format=json`),
+
+          fetch(`https://ws.audioscrobbler.com/2.0/?method=artist.getInfo&api_key=${API_KEY}&artist=${encodeURIComponent(artist)}&username=${USERNAME}&format=json`),
+
+          fetch(`https://ws.audioscrobbler.com/2.0/?method=artist.getTopTracks&api_key=${API_KEY}&artist=${encodeURIComponent(artist)}&limit=5&format=json`),
+
+          fetch(`https://ws.audioscrobbler.com/2.0/?method=artist.getSimilar&api_key=${API_KEY}&artist=${encodeURIComponent(artist)}&limit=5&format=json`)
+        ])
+
+      const albumData = await albumRes.json()
+      const artistData = await artistRes.json()
+      const artistTopData = await artistTopRes.json()
+      const similarArtistsData = await similarArtistsRes.json()
+
+      setSelectedAlbumInfo(albumData.album)
+      const tracks = albumData.album?.tracks?.track
+
+setAlbumTracks(
+  Array.isArray(tracks)
+    ? tracks
+    : tracks
+      ? [tracks]
+      : []
+)
+
+      setArtistInfo(artistData.artist)
+      setArtistTopTracks(artistTopData.toptracks?.track || [])
+      setSimilarArtists(similarArtistsData.similarartists?.artist || [])
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  fetchAlbumDetails()
+}, [selectedAlbum])
+
+useEffect(() => {
+  const navbar = document.querySelector('nav')
+  const modalOpen = Boolean(selectedTrack || selectedAlbum)
+
+  if (modalOpen) {
     document.body.style.overflow = 'hidden'
     document.documentElement.style.overflow = 'hidden'
-
     navbar?.classList.add('hidden')
   } else {
     document.body.style.overflow = ''
     document.documentElement.style.overflow = ''
-
     navbar?.classList.remove('hidden')
   }
 
   return () => {
     document.body.style.overflow = ''
     document.documentElement.style.overflow = ''
-
     navbar?.classList.remove('hidden')
   }
-}, [selectedTrack])
+}, [selectedTrack, selectedAlbum])
 
   if (loading) {
   return (
@@ -260,6 +346,36 @@ const memberSince = registeredAt
 const artistWidth = (stats.artists / maxValue) * 100
 const albumWidth = (stats.albums / maxValue) * 100
 const trackWidth = (stats.tracks / maxValue) * 100
+const albumBioText =
+  selectedAlbumInfo?.wiki?.content ||
+  selectedAlbumInfo?.wiki?.summary ||
+  ''
+
+  const artistBioText =
+  artistInfo?.bio?.content ||
+  artistInfo?.bio?.summary ||
+  ''
+
+const hasAlbumBio = Boolean(albumBioText)
+const albumTags = selectedAlbumInfo?.tags?.tag || []
+const hasAlbumTags = albumTags.length > 0
+const albumReleaseDate = selectedAlbumInfo?.wiki?.published || ''
+const hasAlbumSideInfo = hasAlbumTags || hasAlbumBio
+
+const manualAlbumDuration =
+  selectedAlbum
+    ? manualAlbumDurations[`${selectedAlbum.name}|${selectedAlbum.artist?.name}`]
+    : undefined
+
+const albumTotalMinutes =
+  manualAlbumDuration ??
+  Math.round(
+    albumTracks.reduce((total, track: any) => {
+      return total + Number(track.duration || 0)
+    }, 0) / 60
+  )
+
+const albumMeta = `${albumTracks.length} faixas · ${albumTotalMinutes}min`
 
   return (
   <motion.div
@@ -916,7 +1032,7 @@ const trackWidth = (stats.tracks / maxValue) * 100
   </span>
 
   {artistInfo?.ontour === '1' && (
-    <span className="inline-flex items-center gap-1 px-1.5 py-0 rounded-full text-[10px] font-bold bg-green-500/20 text-green-400 border border-green-500/30 animate-pulse">
+    <span className="m1-3 inline-flex items-center gap-1 px-1.5 py-0 rounded-full text-[10px] font-bold bg-green-500/20 text-green-400 border border-green-500/30 animate-pulse">
       <Radio className="w-2.5 h-2.5" />
       Em turnê
     </span>
@@ -959,7 +1075,7 @@ const trackWidth = (stats.tracks / maxValue) * 100
           </div>
         </div>
 
-        <div className="overflow-y-auto max-h-[70vh] px-5 pb-5 space-y-3">
+        <div className="overflow-y-auto max-h-[70vh] px-5 pb-5 space-y-3 modal-scrollbar">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
   {[
     {
@@ -1244,6 +1360,653 @@ const trackWidth = (stats.tracks / maxValue) * 100
 </AnimatePresence>
 </motion.div>
 
+{/* COLEÇÃO DE ÁLBUNS */}
+<motion.div
+  initial={{ opacity: 0 }}
+  whileInView={{ opacity: 1 }}
+  viewport={{ once: true }}
+  transition={{ duration: 0.5 }}
+  className="mt-12"
+>
+  <div className="mb-8">
+  <div className="flex items-center gap-3 mb-2">
+    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+      <Disc3 className="w-5 h-5 text-primary" />
+    </div>
+
+    <div>
+      <h2 className="text-3xl md:text-4xl font-black">
+        Coleção de Álbuns
+      </h2>
+
+      <p className="text-muted-foreground text-sm">
+        Os discos mais tocados da minha biblioteca
+      </p>
+    </div>
+  </div>
+</div>
+
+  {/* TOP 3 */}
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
+    {topAlbums.slice(0, 3).map((album, index) => (
+      <motion.a
+  key={album.name}
+  onClick={() => {
+  setSelectedAlbumInfo(null)
+  setAlbumTracks([])
+  setArtistInfo(null)
+  setArtistTopTracks([])
+  setSimilarArtists([])
+  setShowFullAlbumBio(false)
+  setShowFullBio(false)
+  setSelectedAlbum(album)
+}}
+  initial={{ opacity: 0, y: 40 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  viewport={{ once: true }}
+  transition={{ delay: index * 0.15 }}
+  className={`flex flex-col items-center ${
+    index === 0 ? 'md:order-first' : ''
+  }`}
+>
+  <div className="relative group cursor-pointer mb-4">
+    <motion.div
+      whileHover={{ x: 30 }}
+      transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+      className="absolute inset-0 flex items-center justify-center"
+    >
+      <div
+        className={`rounded-full bg-[#1a1a1a] relative ${
+          index === 0
+            ? 'w-52 h-52 md:w-60 md:h-60'
+            : 'w-44 h-44 md:w-52 md:h-52'
+        }`}
+      >
+        <div className="absolute inset-0 rounded-full overflow-hidden">
+          <div className="absolute inset-[8%] rounded-full border border-white/[0.04]" />
+          <div className="absolute inset-[16%] rounded-full border border-white/[0.06]" />
+          <div className="absolute inset-[24%] rounded-full border border-white/[0.04]" />
+          <div className="absolute inset-[32%] rounded-full border border-white/[0.06]" />
+          <div className="absolute inset-[38%] rounded-full border border-white/[0.04]" />
+          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/[0.08] via-transparent to-white/[0.03]" />
+        </div>
+
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-[35%] h-[35%] rounded-full bg-gradient-to-br from-primary/30 to-primary/10 border border-primary/20 flex items-center justify-center">
+            <div className="w-3 h-3 rounded-full bg-background/80 border border-border" />
+          </div>
+        </div>
+      </div>
+    </motion.div>
+
+    <motion.div
+      whileHover={{ scale: 1.03 }}
+      transition={{ type: 'spring', stiffness: 300 }}
+      className={`relative rounded-2xl overflow-hidden shadow-2xl ring-1 ring-primary/40 ${
+        index === 0
+          ? 'w-52 h-52 md:w-60 md:h-60'
+          : 'w-44 h-44 md:w-52 md:h-52'
+      }`}
+    >
+      <img
+        src={
+          album.image?.[3]?.['#text'] ||
+          album.image?.[2]?.['#text'] ||
+          'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png'
+        }
+        alt={album.name}
+        className="w-full h-full object-cover"
+      />
+
+      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+      <div className="absolute top-3 left-3 z-10">
+        <div
+          className={`w-8 h-8 rounded-full font-black text-xs shadow-lg flex items-center justify-center ${
+            index === 0
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-black/80 text-white'
+          }`}
+        >
+          {index + 1}
+        </div>
+      </div>
+
+      <div className="absolute top-3 right-3 z-10">
+        <div className="px-2.5 py-0 rounded-full bg-black/60 backdrop-blur-sm text-white text-[10px] font-medium flex items-center gap-1">
+          <Headphones className="w-3 h-3" />
+          {Number(album.playcount).toLocaleString()}
+        </div>
+      </div>
+    </motion.div>
+  </div>
+
+  <div className="text-center max-w-[200px]">
+    <h3 className="font-bold text-sm mb-0.5 line-clamp-1">
+      {album.name}
+    </h3>
+
+    <p className="text-xs text-muted-foreground line-clamp-1">
+      {album.artist?.name}
+    </p>
+  </div>
+</motion.a>
+    ))}
+  </div>
+  {/* RESTANTE DOS ÁLBUNS */}
+<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4">
+  {topAlbums.slice(3, 10).map((album, index) => (
+    <motion.a
+      key={album.name}
+      onClick={() => {
+  setSelectedAlbumInfo(null)
+  setAlbumTracks([])
+  setArtistInfo(null)
+  setArtistTopTracks([])
+  setSimilarArtists([])
+  setShowFullAlbumBio(false)
+  setShowFullBio(false)
+  setSelectedAlbum(album)
+}}
+      initial={{ opacity: 0, scale: 0.8 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      viewport={{ once: true }}
+      transition={{ delay: index * 0.05 }}
+      className="group cursor-pointer"
+    >
+      <div className="bg-card/40 border border-border/50 hover:border-primary/30 transition-all overflow-hidden rounded-xl py-5">
+        <div className="p-2.5">
+          <div className="relative aspect-square rounded-xl overflow-hidden mb-2">
+            <img
+              src={
+                album.image?.[3]?.['#text'] ||
+                album.image?.[2]?.['#text'] ||
+                'https://i.scdn.co/image/ab67616d00001e022bcab0a1c1049ab6fb434f19'
+              }
+              alt={album.name}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            />
+
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+            <div className="absolute bottom-2 left-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <div className="flex items-center gap-1 text-white text-[10px] font-medium">
+                <Play className="w-3 h-3 fill-white" />
+                {Number(album.playcount).toLocaleString()} plays
+              </div>
+            </div>
+
+            <div className="absolute top-1.5 left-1.5">
+              <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-black/60 backdrop-blur-sm text-white text-[10px] font-medium">
+                {index + 4}
+              </span>
+            </div>
+          </div>
+
+          <h4 className="text-[11px] font-medium line-clamp-1 mb-0.5">
+            {album.name}
+          </h4>
+
+          <p className="text-[10px] text-muted-foreground line-clamp-1">
+            {album.artist?.name}
+          </p>
+        </div>
+      </div>
+    </motion.a>
+  ))}
+</div>
+</motion.div>
+<AnimatePresence>
+  {selectedAlbum && (
+    <>
+      <motion.div
+        className="fixed inset-0 z-[9999] bg-black/70"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={() => setSelectedAlbum(null)}
+      />
+
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        transition={{ duration: 0.2 }}
+        className="fixed top-1/2 left-1/2 z-[10000] w-full max-w-[850px] max-h-[90vh] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-lg border border-border/50 bg-[#120C07] shadow-lg p-0 gap-0"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="relative">
+          <div className="absolute inset-0 overflow-hidden">
+            
+            <img
+              src={
+                manualAlbumImages[
+  `${selectedAlbum.name}|${selectedAlbum.artist?.name}`
+] ||
+selectedAlbum.manualImage ||
+selectedAlbum.image?.[3]?.['#text'] ||
+selectedAlbum.image?.[2]?.['#text'] ||
+                'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png'
+              }
+              alt=""
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-card/50 via-card/80 to-card" />
+          </div>
+
+          <button
+            onClick={() => setSelectedAlbum(null)}
+            className="absolute top-3 right-3 z-20 w-7 h-7 rounded-full bg-background/60 border border-border/50 flex items-center justify-center text-muted-foreground hover:text-foreground"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+
+          <div className="relative p-5 pb-3.5">
+            <div className="flex gap-4 items-start">
+              <div className="relative flex-shrink-0">
+                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden shadow-2xl ring-2 ring-purple-500/40">
+                  <img
+                    src={
+                      manualAlbumImages[
+  `${selectedAlbum.name}|${selectedAlbum.artist?.name}`
+] ||
+selectedAlbum.manualImage ||
+selectedAlbum.image?.[3]?.['#text'] ||
+selectedAlbum.image?.[2]?.['#text'] ||
+                      'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png'
+                    }
+                    alt={selectedAlbum.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+
+                <div className="absolute -bottom-1.5 -right-1.5 px-2 py-0 rounded-full bg-primary text-primary-foreground text-[10px] font-black shadow-lg flex items-center gap-1">
+                  <Play className="w-2.5 h-2.5 fill-current" />
+                  {selectedAlbum.playcount}
+                </div>
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <span className="inline-flex items-center gap-1 px-2 py-0 rounded-full text-[10px] font-bold uppercase tracking-wider bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                  <Disc3 className="w-2.5 h-2.5" />
+                  Álbum
+                </span>
+
+                {artistInfo?.ontour === '1' && (
+  <span className="ml-2 inline-flex items-center gap-1 px-1.5 py-0 rounded-full text-[10px] font-bold bg-green-500/20 text-green-400 border border-green-500/30 animate-pulse">
+    <Radio className="w-2.5 h-2.5" />
+    Em turnê
+  </span>
+)}
+
+                <h2 className="text-xl font-black text-foreground leading-tight mt-2 mb-1">
+                  {selectedAlbum.name}
+                </h2>
+
+                <p className="text-sm font-semibold text-muted-foreground flex items-center gap-1.5">
+                  <MicVocal className="w-3.5 h-3.5" />
+                  {selectedAlbum.artist?.name}
+                </p>
+
+                <div className="flex items-center gap-3 text-[11px] text-muted-foreground/70 mt-2">
+                  <span className="flex items-center gap-1">
+                    <ListMusic className="w-3 h-3" />
+                    {albumMeta}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="overflow-y-auto max-h-[70vh] px-5 pb-5 space-y-3 modal-scrollbar">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div className="rounded-2xl border p-2 text-center bg-secondary/40 border-border/50">
+              <Globe className="w-4 h-4 mx-auto mb-1.5 text-primary" />
+              <p className="text-lg font-black text-foreground">
+                {formatShort(Number(selectedAlbumInfo?.listeners || 0))}
+              </p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                Ouvintes
+              </p>
+            </div>
+
+            <div className="rounded-2xl border p-2 text-center bg-secondary/40 border-border/50">
+              <Headphones className="w-4 h-4 mx-auto mb-1.5 text-primary" />
+              <p className="text-lg font-black text-foreground">
+                {formatShort(Number(selectedAlbumInfo?.playcount || 0))}
+              </p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                Plays globais
+              </p>
+            </div>
+
+            <div className="rounded-2xl border p-2 text-center bg-purple-500/10 border-purple-500/20">
+              <Play className="w-4 h-4 mx-auto mb-1.5 text-purple-400 fill-current" />
+              <p className="text-lg font-black text-purple-400">
+                {selectedAlbum.playcount}
+              </p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                Seus plays
+              </p>
+            </div>
+
+            <div className="rounded-2xl border p-2 text-center bg-secondary/40 border-border/50">
+              <Percent className="w-4 h-4 mx-auto mb-1.5 text-primary" />
+              <p className="text-lg font-black text-foreground">
+                {selectedAlbumInfo?.playcount
+                  ? (Number(selectedAlbum.playcount) / Number(selectedAlbumInfo.playcount)) * 100 < 0.01
+                    ? '<0.01%'
+                    : `${((Number(selectedAlbum.playcount) / Number(selectedAlbumInfo.playcount)) * 100).toFixed(2)}%`
+                  : '0%'}
+              </p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                Do total global
+              </p>
+            </div>
+          </div>
+
+          <div className="rounded-lg bg-secondary/30 border border-border/50 p-2.5">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                <ChartColumn className="w-3 h-3" />
+                Sua contribuição
+              </span>
+
+              <span className="text-xs font-bold text-primary">
+                {selectedAlbum.playcount} / {Number(selectedAlbumInfo?.playcount || 0).toLocaleString()}
+              </span>
+            </div>
+
+            <div className="h-1.5 bg-secondary/60 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-purple-500 to-purple-400 rounded-full"
+                style={{
+                  width: selectedAlbumInfo?.playcount
+                    ? `${Math.min((Number(selectedAlbum.playcount) / Number(selectedAlbumInfo.playcount)) * 100, 100)}%`
+                    : '0%',
+                }}
+              />
+            </div>
+          </div>
+
+          <div
+  className={`grid grid-cols-1 gap-3 items-start ${
+    hasAlbumSideInfo ? 'md:grid-cols-[1fr_400px]' : ''
+  }`}
+>
+            {hasAlbumSideInfo && (
+  <div className="space-y-3">
+
+    {hasAlbumTags && (
+      <div>
+        <div className="flex items-center gap-1.5 mb-2">
+  <Tag className="w-3.5 h-3.5 text-muted-foreground" />
+
+  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+    Tags
+  </p>
+</div>
+
+        <div className="flex flex-wrap gap-1.5">
+          {albumTags.slice(0, 5).map((tag: any) => (
+            <a
+  key={tag.name}
+  href={`https://www.last.fm/tag/${encodeURIComponent(tag.name)}`}
+  target="_blank"
+  rel="noopener noreferrer"
+  className="px-2 py-0 rounded-full bg-secondary/60 border border-border/50 text-[11px] text-muted-foreground hover:text-foreground hover:border-primary/30 hover:bg-secondary/80 transition-all"
+>
+  {tag.name}
+</a>
+          ))}
+        </div>
+      </div>
+    )}
+
+    {hasAlbumBio && (
+      <div className="rounded-lg bg-secondary/20 border border-border/40 p-3">
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+            <Sparkles className="w-3.5 h-3.5" />
+            Sobre o álbum
+          </p>
+
+          {albumReleaseDate && (
+            <span className="text-[9px] text-muted-foreground/50 flex items-center gap-1">
+              <Calendar className="w-2.5 h-2.5" />
+              {albumReleaseDate}
+            </span>
+          )}
+        </div>
+
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          {albumBioText
+            ?.replace(/<a[^>]*>.*?<\/a>/g, '')
+  ?.slice(0, showFullAlbumBio ? undefined : 260)}
+          {!showFullAlbumBio && albumBioText.length > 260 ? '...' : ''}
+        </p>
+
+        {albumBioText.length > 260 && (
+          <button
+            onClick={() => setShowFullAlbumBio(!showFullAlbumBio)}
+            className="text-[11px] text-primary mt-1 hover:text-foreground transition-colors flex items-center gap-1"
+          >
+            {showFullAlbumBio ? (
+              <>
+                <ChevronUp className="w-3 h-3" />
+                Menos
+              </>
+            ) : (
+              <>
+                <ChevronDown className="w-3 h-3" />
+                Mais
+              </>
+            )}
+          </button>
+        )}
+      </div>
+    )}
+
+  </div>
+)}
+
+            
+
+            <div className="self-start">
+  <div className="flex items-center justify-between mb-2 px-1">
+  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+    <ListMusic className="w-3 h-3" />
+    Faixas
+  </p>
+
+  <span className="text-[10px] text-muted-foreground">
+    {albumMeta}
+  </span>
+</div>
+
+  <div className="rounded-lg bg-secondary/20 border border-border/50 overflow-hidden divide-y divide-border/30 max-h-[250px] overflow-y-auto modal-scrollbar">
+  {albumTracks.map((track: any, index: number) => (
+    <a
+      key={track.name}
+      href={track.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex items-center gap-3 px-2.5 py-1 hover:bg-secondary/40 transition-colors group"
+    >
+      <span className="w-5 text-center text-[11px] font-bold text-muted-foreground/60 group-hover:text-primary transition-colors">
+        {index + 1}
+      </span>
+
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-medium text-foreground truncate group-hover:text-primary transition-colors">
+          {track.name}
+        </p>
+      </div>
+
+      <span className="text-[11px] text-muted-foreground/60 flex-shrink-0">
+  {manualTrackDurations[
+    `${selectedAlbum.name}|${selectedAlbum.artist?.name}|${track.name}`
+  ] ||
+    (track.duration
+      ? `${Math.floor(Number(track.duration) / 60)}:${String(
+          Number(track.duration) % 60
+        ).padStart(2, '0')}`
+      : '--:--')}
+</span>
+    </a>
+  ))}
+</div>
+</div>
+<div className="rounded-lg bg-gradient-to-br from-secondary/40 via-secondary/20 to-transparent border border-border/50 overflow-hidden col-span-full w-full">
+  <div className="p-3">
+    <div className="flex items-start gap-3 mb-2">
+      <div className="w-10 h-10 rounded-lg bg-secondary/40 border border-border/30 flex items-center justify-center flex-shrink-0">
+        <MicVocal className="w-4 h-4 text-muted-foreground" />
+      </div>
+
+      <div className="min-w-0">
+        <div className="flex items-center gap-1">
+          <p className="text-sm font-bold text-foreground">
+            {selectedAlbum.artist?.name}
+          </p>
+
+          <a
+            href={artistInfo?.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-muted-foreground hover:text-primary transition-colors"
+          >
+            <ExternalLink className="w-3 h-3" />
+          </a>
+        </div>
+
+        <div className="flex items-center gap-3 text-[11px] text-muted-foreground mt-1">
+          <span>{formatShort(Number(artistInfo?.stats?.listeners || 0))} ouvintes</span>
+          <span>{formatShort(Number(artistInfo?.stats?.playcount || 0))} plays</span>
+        </div>
+
+        <div className="-ml-[52px] flex flex-wrap gap-1.5 mt-3">
+          {(artistInfo?.tags?.tag || []).slice(0, 5).map((tag: any) => (
+            <span
+              key={tag.name}
+              className="px-2 py-0 rounded-full bg-background/40 text-[9px] text-muted-foreground"
+            >
+              {tag.name}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <p className="text-xs text-muted-foreground mt-3 leading-relaxed">
+  {artistBioText
+    ?.replace(/<a[^>]*>.*?<\/a>/g, '')
+    ?.slice(0, showFullBio ? undefined : 260) ||
+    'Sem informações disponíveis para este artista.'}
+
+  {!showFullBio && artistBioText.length > 260 ? '...' : ''}
+</p>
+
+{artistBioText.length > 260 && (
+  <button
+    onClick={() => setShowFullBio(!showFullBio)}
+    className="text-[11px] text-primary mt-1 hover:text-foreground transition-colors"
+  >
+    <div className="flex items-center gap-1">
+      {showFullBio ? (
+        <>
+          <ChevronUp className="w-3 h-3" />
+          <span>Menos</span>
+        </>
+      ) : (
+        <>
+          <ChevronDown className="w-3 h-3" />
+          <span>Mais</span>
+        </>
+      )}
+    </div>
+  </button>
+)}
+</div>
+
+  <div className="border-t border-border/30 grid divide-x divide-border/30 grid-cols-2">
+    <div className="p-3">
+      <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center gap-1">
+        <TrendingUp className="w-3 h-3" />
+        Top do artista
+      </p>
+
+      <div className="space-y-0.5">
+        {artistTopTracks.map((t, i) => (
+          <a
+            key={t.name}
+            href={t.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 py-1 px-1.5 rounded hover:bg-background/40 transition-colors group"
+          >
+            <span className="w-3.5 text-center text-[9px] font-bold text-muted-foreground/50">
+              {i + 1}
+            </span>
+
+            <p className="flex-1 text-[11px] font-medium text-foreground truncate group-hover:text-primary">
+              {t.name}
+            </p>
+
+            <span className="text-[9px] text-muted-foreground/60">
+              {formatShort(Number(t.playcount || 0))}
+            </span>
+          </a>
+        ))}
+      </div>
+    </div>
+
+    <div className="p-3">
+      <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center gap-1">
+        <Users className="w-3 h-3" />
+        Similares
+      </p>
+
+      <div className="space-y-1">
+        {similarArtists.map((a) => (
+          <a
+            key={a.name}
+            href={a.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 py-1 px-1.5 rounded hover:bg-background/40 transition-colors group"
+          >
+            <div className="w-5 h-5 rounded-full bg-secondary/40 flex items-center justify-center flex-shrink-0">
+              <MicVocal className="w-2.5 h-2.5 text-muted-foreground" />
+            </div>
+
+            <span className="text-[11px] font-medium text-foreground truncate group-hover:text-primary">
+              {a.name}
+            </span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </div>
+</div>
+          </div>
+          
+
+          <a
+            href={`https://www.last.fm/music/${normalizeLastFmArtist(selectedAlbum.artist?.name || '').replaceAll(' ', '+')}/${selectedAlbum.name.replaceAll(' ', '+')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg text-xs font-semibold transition-all bg-purple-500/10 text-purple-400 border border-purple-500/30 hover:bg-purple-500/20"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+            Ver no Last.fm
+          </a>
+        </div>
+      </motion.div>
+    </>
+  )}
+</AnimatePresence>
     </motion.div>
 
     

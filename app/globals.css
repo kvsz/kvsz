@@ -119,3 +119,17 @@ body::-webkit-scrollbar-button,
   width: 0;
   height: 0;
 }
+
+.modal-scrollbar::-webkit-scrollbar-track {
+  background: #070403 !important;
+  border-radius: 999px;
+}
+
+.modal-scrollbar::-webkit-scrollbar-thumb {
+  background: #2a211c !important;
+  border-radius: 999px;
+}
+
+.modal-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #8d7d6e !important;
+}
