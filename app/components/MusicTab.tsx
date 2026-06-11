@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Headphones, Users, Library, ListMusic, ExternalLink, 
-  Calendar, TrendingUp, Star, Crown, Play, Radio, LoaderCircle, Music, X, Globe, Percent, ChartColumn, Sparkles, MicVocal, Disc3, Clock3, ChevronDown, ChevronUp, Tag 
+  Calendar, TrendingUp, Star, Crown, Play, Radio, LoaderCircle, Music, X, Globe, Percent, ChartColumn, Sparkles, MicVocal, Disc3, Clock3, ChevronDown, ChevronUp, Tag, Clock, LayoutGrid, LayoutList 
 } from 'lucide-react'
 
 const USERNAME = 'l9ve'
@@ -82,7 +82,18 @@ const manualTrackImages: Record<string, string> = {
    'golden retriever|Thorne':
   'https://i.scdn.co/image/ab67616d00001e026f4e4c07e8178879bb375fd2',
 
-} 
+}
+
+const manualRecentTrackImages: Record<string, string> = {
+  'my old friend paranoia|imnotvrycreative': 'URL_DA_CAPA_AQUI',
+  'perfect, the imposter|imnotvrycreative': 'URL_DA_CAPA_AQUI',
+  'me myself and hell|imnotvrycreative': 'URL_DA_CAPA_AQUI',
+  'NOT MY MOTTO|imnotvrycreative': 'URL_DA_CAPA_AQUI',
+  'On My Own|Brux Blank Music': 'https://cdn-images.dzcdn.net/images/artist/34eaf232cb2cf6e0cb9de194d86e21cd/500x500-000000-80-0-0.jpg',
+  'Strange|Vincemp3': 'https://imgs.search.brave.com/xhth5JeoERzsXFqjjG7m2yHL6-Z61CqiMDZYS3YvjtY/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pLnNj/ZG4uY28vaW1hZ2Uv/YWI2NzYxNmQwMDAw/MWUwMjI4YzJhN2Iw/MTBkZjcyYWMxYjli/YmY3Mg',
+  'eyelids|Worm': 'https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/3d/5d/28/3d5d2830-24e9-750c-78c8-e6217af22438/artwork.jpg/600x600cc.webp',
+  'Moist.|Vincemp3': 'https://imgs.search.brave.com/mhzpE2e-Xe6kfvzwXYVYYZjOKcoX4bH3A16SzZ6jgk4/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pMS5z/bmRjZG4uY29tL2Fy/dHdvcmtzLUtjamIz/cXBnMjJndWxWZEwt/M2o3cnl3LXQxMDgw/eDEwODAuanBn'
+}
 
 const manualArtistImages: Record<string, string> = {
   'Thorne':
@@ -116,6 +127,29 @@ const manualTrackDurations: Record<string, string> = {
   'everything repeats|Marceline|ruin my world': '2:28',
 }
 
+const formatRecentTime = (track: any) => {
+  if (track?.['@attr']?.nowplaying) {
+    return 'Tocando agora'
+  }
+
+  const unix = Number(track?.date?.uts || 0)
+
+  if (!unix) return 'recente'
+
+  const diffSeconds = Math.floor(Date.now() / 1000 - unix)
+
+  if (diffSeconds < 60) return `há ${diffSeconds}s`
+
+  const diffMinutes = Math.floor(diffSeconds / 60)
+  if (diffMinutes < 60) return `há ${diffMinutes} min`
+
+  const diffHours = Math.floor(diffMinutes / 60)
+  if (diffHours < 24) return `há ${diffHours} horas`
+
+  const diffDays = Math.floor(diffHours / 24)
+  return `há ${diffDays} dias`
+}
+
 export default function MusicTab() {
   const [user, setUser] = useState<any>(null)
   const [topArtist, setTopArtist] = useState<any>(null)
@@ -125,6 +159,8 @@ const [topAlbums, setTopAlbums] = useState<any[]>([])
 const [selectedAlbum, setSelectedAlbum] = useState<any>(null)
 const [selectedAlbumInfo, setSelectedAlbumInfo] = useState<any>(null)
 const [albumTracks, setAlbumTracks] = useState<any[]>([])
+const [recentTracks, setRecentTracks] = useState<any[]>([])
+const [recentView, setRecentView] = useState<'list' | 'grid'>('list')
 const [showFullAlbumBio, setShowFullAlbumBio] = useState(false)
 const [selectedTrack, setSelectedTrack] = useState<any>(null)
 const [selectedTrackInfo, setSelectedTrackInfo] = useState<any>(null)
@@ -139,18 +175,26 @@ const [similarArtists, setSimilarArtists] = useState<any[]>([])
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [userRes, artistsRes, albumsRes, tracksRes] = await Promise.all([
+        const [userRes, artistsRes, albumsRes, tracksRes, recentRes] = await Promise.all([
   fetch(`https://ws.audioscrobbler.com/2.0/?method=user.getinfo&user=${USERNAME}&api_key=${API_KEY}&format=json`),
   fetch(`https://ws.audioscrobbler.com/2.0/?method=user.gettopartists&user=${USERNAME}&api_key=${API_KEY}&limit=5&format=json`),
   fetch(`https://ws.audioscrobbler.com/2.0/?method=user.gettopalbums&user=${USERNAME}&api_key=${API_KEY}&limit=10&format=json`),
-  fetch(`https://ws.audioscrobbler.com/2.0/?method=user.gettoptracks&user=${USERNAME}&api_key=${API_KEY}&limit=10&format=json`)
+  fetch(`https://ws.audioscrobbler.com/2.0/?method=user.gettoptracks&user=${USERNAME}&api_key=${API_KEY}&limit=10&format=json`),
+  fetch(`https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${USERNAME}&api_key=${API_KEY}&limit=15&format=json`)
 ])
+
+
+
+
 
 const userData = await userRes.json()
 const artistsData = await artistsRes.json()
 const albumsData = await albumsRes.json()
 setTopAlbums(albumsData.topalbums?.album || [])
 const tracksData = await tracksRes.json()
+
+const recentData = await recentRes.json()
+setRecentTracks((recentData.recenttracks?.track || []).slice(0, 15))
 
 const tracksWithImages = await Promise.all(
   (tracksData.toptracks?.track || []).map(async (track: any) => ({
@@ -194,6 +238,28 @@ const artistsWithAppleImages = await Promise.all(
     }
     fetchData()
   }, [])
+
+  useEffect(() => {
+  const fetchRecentTracks = async () => {
+    try {
+      const res = await fetch(
+        `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${USERNAME}&api_key=${API_KEY}&limit=15&format=json`
+      )
+
+      const data = await res.json()
+
+      setRecentTracks((data.recenttracks?.track || []).slice(0, 15))
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  fetchRecentTracks()
+
+  const interval = setInterval(fetchRecentTracks, 5000)
+
+  return () => clearInterval(interval)
+}, [])
 
 
   useEffect(() => {
@@ -374,6 +440,32 @@ const albumTotalMinutes =
       return total + Number(track.duration || 0)
     }, 0) / 60
   )
+
+  const Equalizer = ({ grid = false }: { grid?: boolean }) => (
+  <div className={`flex items-end ${grid ? 'gap-1 h-5' : 'gap-0.5 h-3'}`}>
+    <motion.div
+      className={`${grid ? 'w-1' : 'w-0.5'} bg-primary rounded-full`}
+      animate={{ height: ['30%', '80%', '45%', '65%', '30%'] }}
+      transition={{ duration: 0.8, repeat: Infinity, ease: 'easeInOut' }}
+    />
+
+    <motion.div
+      className={`${grid ? 'w-1' : 'w-0.5'} bg-primary rounded-full`}
+      animate={{ height: ['45%', '25%', '85%', '50%', '45%'] }}
+      transition={{ duration: 0.7, repeat: Infinity, ease: 'easeInOut' }}
+    />
+
+    <motion.div
+      className={`${grid ? 'w-1' : 'w-0.5'} bg-primary rounded-full`}
+      animate={{ height: ['70%', '40%', '95%', '35%', '70%'] }}
+      transition={{ duration: 0.9, repeat: Infinity, ease: 'easeInOut' }}
+    />
+  </div>
+)
+
+const selectedUserPlays = selectedTrack?.fromRecent
+  ? Number(selectedTrackInfo?.userplaycount || 0)
+  : Number(selectedTrack?.playcount || 0)
 
 const albumMeta = `${albumTracks.length} faixas · ${albumTotalMinutes}min`
 
@@ -1019,7 +1111,7 @@ const albumMeta = `${albumTracks.length} faixas · ${albumTotalMinutes}min`
 
                 <div className="absolute -bottom-1.5 -right-1.5 px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-black shadow-lg flex items-center gap-1">
                   <Play className="w-2.5 h-2.5 fill-current" />
-                  {selectedTrack.playcount}
+                  {selectedUserPlays}
                 </div>
               </div>
 
@@ -1094,21 +1186,21 @@ const albumMeta = `${albumTracks.length} faixas · ${albumTotalMinutes}min`
     },
     {
       label: 'Seus plays',
-      value: selectedTrack.playcount,
-      title: `${selectedTrack.playcount} seus plays`,
+      value: selectedUserPlays,
+      title: `${selectedUserPlays} seus plays`,
       icon: Play,
       active: true,
     },
     {
       label: 'Do total global',
       value: selectedTrackInfo?.playcount
-        ? `${((Number(selectedTrack.playcount) / Number(selectedTrackInfo.playcount)) * 100) < 0.01
+        ? `${((selectedUserPlays / Number(selectedTrackInfo.playcount)) * 100) < 0.01
     ? '<0.01%'
-    : `${((Number(selectedTrack.playcount) / Number(selectedTrackInfo.playcount)) * 100).toFixed(2)}%`
+    : `${((selectedUserPlays / Number(selectedTrackInfo.playcount)) * 100).toFixed(2)}%`
   }`
         : '0%',
       title: selectedTrackInfo?.playcount
-        ? `Você contribuiu com ${((Number(selectedTrack.playcount) / Number(selectedTrackInfo.playcount)) * 100).toFixed(4)}% dos plays globais`
+        ? `Você contribuiu com ${((selectedUserPlays / Number(selectedTrackInfo.playcount)) * 100).toFixed(4)}% dos plays globais`
         : 'Você contribuiu com 0% dos plays globais',
       icon: Percent,
       active: false,
@@ -1156,7 +1248,7 @@ const albumMeta = `${albumTracks.length} faixas · ${albumTotalMinutes}min`
               </span>
 
               <span className="text-xs font-bold text-primary">
-                {selectedTrack.playcount} / {Number(selectedTrackInfo?.playcount || 0).toLocaleString()}
+                {selectedUserPlays} / {Number(selectedTrackInfo?.playcount || 0).toLocaleString()}
               </span>
             </div>
 
@@ -1165,7 +1257,7 @@ const albumMeta = `${albumTracks.length} faixas · ${albumTotalMinutes}min`
                 className="h-full bg-gradient-to-r from-primary to-primary/70 rounded-full"
                 style={{
                   width: selectedTrackInfo?.playcount
-                    ? `${Math.min((Number(selectedTrack.playcount) / Number(selectedTrackInfo.playcount)) * 100, 100)}%`
+                    ? `${Math.min((selectedUserPlays / Number(selectedTrackInfo.playcount)) * 100, 100)}%`
                     : '0%'
                 }}
               />
@@ -2007,6 +2099,252 @@ selectedAlbum.image?.[2]?.['#text'] ||
     </>
   )}
 </AnimatePresence>
+
+<motion.div
+  initial={{ opacity: 0, y: 20 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  viewport={{ once: true }}
+  transition={{ delay: 0.4 }}
+  className="mt-12 bg-card/50 border border-border/50 rounded-2xl pt-10 px-6 pb-6"
+>
+  <div className="flex items-center justify-between mb-6">
+    <div className="flex items-center gap-3">
+      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+        <Clock className="w-5 h-5 text-primary" />
+      </div>
+
+      <div>
+        <h3 className="text-lg font-medium text-foreground">
+          Ouvido Recentemente
+        </h3>
+
+        <p className="text-xs text-muted-foreground">
+          Últimas {recentTracks.length} faixas
+        </p>
+      </div>
+    </div>
+
+    <div className="flex items-center gap-1 p-1 bg-secondary/50 rounded-lg">
+      <button
+        onClick={() => setRecentView('list')}
+        className={`p-2 rounded-md transition-all ${
+          recentView === 'list'
+            ? 'bg-primary text-primary-foreground shadow-sm'
+            : 'text-muted-foreground hover:text-foreground'
+        }`}
+      >
+        <LayoutList className="w-4 h-4" />
+      </button>
+
+      <button
+        onClick={() => setRecentView('grid')}
+        className={`p-2 rounded-md transition-all ${
+          recentView === 'grid'
+            ? 'bg-primary text-primary-foreground shadow-sm'
+            : 'text-muted-foreground hover:text-foreground'
+        }`}
+      >
+        <LayoutGrid className="w-4 h-4" />
+      </button>
+    </div>
+  </div>
+
+  <AnimatePresence mode="wait">
+    {recentView === 'list' ? (
+      <motion.div
+        key="list"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -10 }}
+        className="space-y-2"
+      >
+        {recentTracks.map((track, index) => {
+  const artistName = track.artist?.['#text'] || track.artist?.name || ''
+
+const image =
+  manualRecentTrackImages[`${track.name}|${artistName}`] ||
+  track.image?.[3]?.['#text'] ||
+  track.image?.[2]?.['#text'] ||
+  track.image?.[1]?.['#text'] ||
+  'https://lastfm.freetls.fastly.net/i/u/174s/2a96cbd8b46e442fc41c2b86b821562f.png'
+
+  const isNowPlaying = Boolean(track['@attr']?.nowplaying)
+
+  return (
+            <div
+              key={`${track.name}-${index}`}
+              onClick={() => {
+  setSelectedTrackInfo(null)
+  setSimilarTracks([])
+  setArtistInfo(null)
+  setArtistTopTracks([])
+  setSimilarArtists([])
+  setShowFullBio(false)
+
+  setSelectedTrack({
+    ...track,
+    playcount: 0,
+fromRecent: true,
+    artist: {
+      name: track.artist?.['#text'] || track.artist?.name || '',
+    },
+    appleImage:
+  manualRecentTrackImages[`${track.name}|${artistName}`] ||
+  track.image?.[3]?.['#text'] ||
+  track.image?.[2]?.['#text'] ||
+  track.image?.[1]?.['#text'] ||
+  '',
+  })
+}}
+              className={`flex items-center gap-4 p-3 rounded-lg transition-all cursor-pointer ${
+  isNowPlaying
+    ? 'bg-primary/10 border border-primary/30'
+    : 'bg-secondary/30 hover:bg-secondary/50'
+}`}
+            >
+              <div className="relative w-12 h-12 rounded-md overflow-hidden flex-shrink-0">
+                <img
+                  src={image}
+                  alt={track.name}
+                  className="w-full h-full object-cover"
+                />
+                {isNowPlaying && (
+  <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+    <Equalizer />
+  </div>
+)}
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <p className="font-medium text-foreground truncate">
+                    {track.name}
+                  </p>
+                  {isNowPlaying && (
+  <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/20 text-primary text-xs font-medium flex-shrink-0">
+    <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+    Tocando
+  </span>
+)}
+                  
+                </div>
+
+                
+
+                <p className="text-sm text-muted-foreground truncate">
+                  {track.artist?.['#text']} • {track.album?.['#text']}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 flex-shrink-0">
+                <span
+  className={`text-xs ${
+    isNowPlaying
+      ? 'text-primary font-medium'
+      : 'text-muted-foreground'
+  }`}
+>
+  {isNowPlaying ? 'Tocando agora' : formatRecentTime(track)}
+</span>
+
+                <ExternalLink className="w-4 h-4 text-muted-foreground" />
+              </div>
+            </div>
+          )
+        })}
+      </motion.div>
+    ) : (
+      <motion.div
+        key="grid"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -10 }}
+        className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-5"
+      >
+        {recentTracks.map((track, index) => {
+  const artistName = track.artist?.['#text'] || track.artist?.name || ''
+
+const image =
+  manualRecentTrackImages[`${track.name}|${artistName}`] ||
+  track.image?.[3]?.['#text'] ||
+  track.image?.[2]?.['#text'] ||
+  track.image?.[1]?.['#text'] ||
+  'https://lastfm.freetls.fastly.net/i/u/174s/2a96cbd8b46e442fc41c2b86b821562f.png'
+
+  const isNowPlaying = Boolean(track['@attr']?.nowplaying)
+
+  return (
+            <div
+              key={`${track.name}-${index}`}
+              onClick={() => {
+  setSelectedTrackInfo(null)
+  setSimilarTracks([])
+  setArtistInfo(null)
+  setArtistTopTracks([])
+  setSimilarArtists([])
+  setShowFullBio(false)
+
+  setSelectedTrack({
+    ...track,
+    playcount: 0,
+fromRecent: true,
+    artist: {
+      name: track.artist?.['#text'] || track.artist?.name || '',
+    },
+    appleImage:
+  manualRecentTrackImages[
+    `${track.name}|${track.artist?.['#text'] || track.artist?.name || ''}`
+  ] ||
+  track.image?.[3]?.['#text'] ||
+  track.image?.[2]?.['#text'] ||
+  track.image?.[1]?.['#text'] ||
+  '',
+  })
+}}
+              className={`group cursor-pointer rounded-lg p-3 transition-all ${
+  isNowPlaying
+    ? 'bg-primary/10 border border-primary/30'
+    : 'bg-secondary/30 hover:bg-secondary/50'
+}`}
+            >
+              <div className="relative aspect-square rounded-md overflow-hidden mb-3">
+  <img
+    src={image}
+    alt={track.name}
+    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+  />
+
+  {isNowPlaying && (
+    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+      <Equalizer grid />
+    </div>
+  )}
+</div>
+
+              <p className="text-sm font-medium text-foreground truncate">
+                {track.name}
+              </p>
+              
+
+              
+
+              <p className="text-xs text-muted-foreground truncate mb-2">
+  {track.artist?.['#text']}
+</p>
+
+{isNowPlaying && (
+  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/20 text-primary text-xs font-medium">
+    <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+    Tocando
+  </span>
+)}
+            </div>
+          )
+        })}
+      </motion.div>
+    )}
+  </AnimatePresence>
+</motion.div>
     </motion.div>
 
     
