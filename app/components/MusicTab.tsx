@@ -85,14 +85,14 @@ const manualTrackImages: Record<string, string> = {
 }
 
 const manualRecentTrackImages: Record<string, string> = {
-  'my old friend paranoia|imnotvrycreative': 'URL_DA_CAPA_AQUI',
-  'perfect, the imposter|imnotvrycreative': 'URL_DA_CAPA_AQUI',
-  'me myself and hell|imnotvrycreative': 'URL_DA_CAPA_AQUI',
-  'NOT MY MOTTO|imnotvrycreative': 'URL_DA_CAPA_AQUI',
+  'my old friend paranoia|imnotvrycreative': 'https://imgs.search.brave.com/wpprfvbmtQBJ10Dg7u75oUsIg8mXph1geqVLhUmq4a8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pMS5z/bmRjZG4uY29tL2Fy/dHdvcmtzLXhudnpE/QXgxYlhYeW9kREct/NUw0SnBnLXQyNDB4/MjQwLmpwZw',
+  'perfect, the imposter|imnotvrycreative': 'https://imgs.search.brave.com/wpprfvbmtQBJ10Dg7u75oUsIg8mXph1geqVLhUmq4a8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pMS5z/bmRjZG4uY29tL2Fy/dHdvcmtzLXhudnpE/QXgxYlhYeW9kREct/NUw0SnBnLXQyNDB4/MjQwLmpwZw',
+  'me myself and hell|imnotvrycreative': 'https://imgs.search.brave.com/wpprfvbmtQBJ10Dg7u75oUsIg8mXph1geqVLhUmq4a8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pMS5z/bmRjZG4uY29tL2Fy/dHdvcmtzLXhudnpE/QXgxYlhYeW9kREct/NUw0SnBnLXQyNDB4/MjQwLmpwZw',
+  'NOT MY MOTTO|imnotvrycreative': 'https://imgs.search.brave.com/z_3APXk4nypHy0BwQoBWRMkhkM7btsjqbWtA4l2Yofw/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWFn/ZXMuZ2VuaXVzLmNv/bS8wNGJhZTcxYzVm/ZWQzZTQzMWJiZmQ1/MWRlM2MwNzQ4Ni4z/MDB4MzAweDEuanBn',
   'On My Own|Brux Blank Music': 'https://cdn-images.dzcdn.net/images/artist/34eaf232cb2cf6e0cb9de194d86e21cd/500x500-000000-80-0-0.jpg',
   'Strange|Vincemp3': 'https://imgs.search.brave.com/xhth5JeoERzsXFqjjG7m2yHL6-Z61CqiMDZYS3YvjtY/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pLnNj/ZG4uY28vaW1hZ2Uv/YWI2NzYxNmQwMDAw/MWUwMjI4YzJhN2Iw/MTBkZjcyYWMxYjli/YmY3Mg',
   'eyelids|Worm': 'https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/3d/5d/28/3d5d2830-24e9-750c-78c8-e6217af22438/artwork.jpg/600x600cc.webp',
-  'Moist.|Vincemp3': 'https://imgs.search.brave.com/mhzpE2e-Xe6kfvzwXYVYYZjOKcoX4bH3A16SzZ6jgk4/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pMS5z/bmRjZG4uY29tL2Fy/dHdvcmtzLUtjamIz/cXBnMjJndWxWZEwt/M2o3cnl3LXQxMDgw/eDEwODAuanBn'
+  'Moist.|Vincemp3': 'https://imgs.search.brave.com/mhzpE2e-Xe6kfvzwXYVYYZjOKcoX4bH3A16SzZ6jgk4/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pMS5z/bmRjZG4uY29tL2Fy/dHdvcmtzLUtjamIz/cXBnMjJndWxWZEwt/M2o3cnl3LXQxMDgw/eDEwODAuanBn',
 }
 
 const manualArtistImages: Record<string, string> = {
