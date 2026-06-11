@@ -112,7 +112,7 @@ function InstagramModal({ open, onClose }: { open: boolean; onClose: () => void 
     avatar: 'https://i.pinimg.com/736x/88/e5/30/88e53008571209403287e72da264710e.jpg',
     posts: 0,
     followers: 23,
-    following: 30
+    following: 31
   }
 
   useEffect(() => {
