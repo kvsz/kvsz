@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Eye, Star, Film, Tv, Heart, ThumbsUp, X, Sparkles, Info, Users, Camera, Clapperboard, ChevronDown, ChevronUp, ChevronRight, Search, LayoutGrid, Clock3, EyeIcon, Circle, XCircle, Trophy, ArrowUpDown } from 'lucide-react'
+import { Eye, Star, Film, Tv, Heart, ThumbsUp, X, Sparkles, Info, Users, Camera, Clapperboard, ChevronDown, ChevronUp, ChevronRight, Search, LayoutGrid, Clock3, EyeIcon, Circle, XCircle, Trophy, ArrowUpDown, } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { createPortal } from 'react-dom'
 
@@ -32,6 +32,24 @@ interface TMDBItem {
   number_of_seasons?: number
   last_air_date?: string
   number_of_episodes?: number
+}
+
+const genreTranslations: Record<string, string> = {
+  'Sci-Fi & Fantasy': 'Ficção Científica',
+  'Action & Adventure': 'Ação e Aventura',
+  Action: 'Ação',
+  Adventure: 'Aventura',
+  Crime: 'Crime',
+  Drama: 'Drama',
+  Mystery: 'Mistério',
+  Comedy: 'Comédia',
+  Horror: 'Terror',
+  Thriller: 'Suspense',
+  Romance: 'Romance',
+  Family: 'Família',
+  Animation: 'Animação',
+  Documentary: 'Documentário',
+  Fantasy: 'Fantasia',
 }
 
 export default function MoviesTab() {
@@ -75,20 +93,68 @@ export default function MoviesTab() {
     recommended: true,
     status: 'assistido',
   },
+  {
+  query: 'You',
+  type: 'tv',
+  tmdbId: 78191,
+  rating: 10,
+  favorite: false,
+  recommended: true,
+  status: 'assistido',
+},
+{
+  query: 'Smallville',
+  type: 'tv',
+  tmdbId: 4604,
+  rating: 10,
+  favorite: false,
+  recommended: true,
+  status: 'assistindo',
+},
+{
+  query: 'Lucifer',
+  type: 'tv',
+  tmdbId: 63174,
+  rating: 10,
+  favorite: false,
+  recommended: true,
+  status: 'completo',
+},
+{
+  query: 'Donnie Darko',
+  type: 'movie',
+  tmdbId: 141,
+  rating: 9,
+  favorite: false,
+  recommended: true,
+  status: 'completo',
+},
 ]
 
       const results = await Promise.all(
         favorites.map(async (item) => {
-          const response = await fetch(
-            `https://api.themoviedb.org/3/search/multi?api_key=${apiKey}&query=${encodeURIComponent(item.query)}&language=pt-BR`
-          )
+          let match: any = null
 
-          const data = await response.json()
+if (item.tmdbId) {
+  const detailsResponse = await fetch(
+    `https://api.themoviedb.org/3/${item.type === 'movie' ? 'movie' : 'tv'}/${item.tmdbId}?api_key=${apiKey}&language=pt-BR`
+  )
 
-          const match = data.results?.find((result: any) => {
-            if (item.type === 'movie') return result.media_type === 'movie'
-            return result.media_type === item.type
-          }) || data.results?.[0]
+  match = await detailsResponse.json()
+  match.media_type = item.type
+} else {
+  const response = await fetch(
+    `https://api.themoviedb.org/3/search/multi?api_key=${apiKey}&query=${encodeURIComponent(item.query)}&language=pt-BR`
+  )
+
+  const data = await response.json()
+
+  match =
+    data.results?.find((result: any) => {
+      if (item.type === 'movie') return result.media_type === 'movie'
+      return result.media_type === item.type
+    }) || data.results?.[0]
+}
 
           const creditsResponse = await fetch(
   `https://api.themoviedb.org/3/${item.type === 'movie' ? 'movie' : 'tv'}/${match.id}/credits?api_key=${apiKey}&language=pt-BR`
@@ -232,7 +298,7 @@ const filteredItems = items.filter((item: any) => {
           </div>
 
           <div className="grid gap-0 grid-cols-1 md:grid-cols-2">
-            {items.map((item) => {
+            {items.filter((item) => item.favorite).map((item) => {
               const title = item.title || item.name
               const year = (item.release_date || item.first_air_date || '').slice(0, 4)
               const typeLabel = item.type === 'movie' ? 'Filme Favorito' : 'Série Favorita'
@@ -609,7 +675,10 @@ const filteredItems = items.filter((item: any) => {
         </h3>
 
         <p className="text-xs text-muted-foreground/60 mb-2 line-clamp-1">
-          {item.genres?.slice(0, 2).map((g) => g.name).join(' · ')}
+          {item.genres
+  ?.slice(0, 2)
+  .map((g) => genreTranslations[g.name] || g.name)
+  .join(' · ')}
         </p>
 
         <div className="flex items-center gap-2.5 mb-2">
@@ -621,16 +690,28 @@ const filteredItems = items.filter((item: any) => {
 
           <div className="flex flex-col gap-0.5">
             <div className="flex items-center gap-0.5 text-yellow-400">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star
-                  key={i}
-                  className={`w-4 h-4 ${
-                    i < Math.round((item.customRating || 0) / 2)
-                      ? 'fill-current'
-                      : 'fill-transparent opacity-40'
-                  }`}
-                />
-              ))}
+              {Array.from({ length: 5 }).map((_, i) => {
+  const rating = item.customRating || 0
+  const fullStars = Math.floor(rating / 2)
+  const hasHalfStar = rating % 2 !== 0
+
+  return (
+    <span key={i} className="relative w-4 h-4 inline-block">
+      <Star className="absolute inset-0 w-4 h-4 fill-transparent opacity-40" />
+
+      {(i < fullStars || (i === fullStars && hasHalfStar)) && (
+        <span
+          className="absolute inset-0 overflow-hidden"
+          style={{
+            width: i === fullStars && hasHalfStar ? '50%' : '100%',
+          }}
+        >
+          <Star className="w-4 h-4 fill-current" />
+        </span>
+      )}
+    </span>
+  )
+})}
             </div>
 
             {item.recommended && (
@@ -649,10 +730,21 @@ const filteredItems = items.filter((item: any) => {
 
       <div className="space-y-2">
         <div className="flex items-center justify-between pt-2 border-t border-border/40">
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-500 text-[10px] font-bold">
-            <Trophy className="w-2.5 h-2.5" />
-            Completo
-          </span>
+          <span
+  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold ${
+    item.status === 'assistindo'
+      ? 'bg-[lab(54.1736%_13.3368_-74.6839_/_0.12)] text-[lab(54.1736%_13.3368_-74.6839)]'
+      : 'bg-emerald-500/10 text-emerald-500'
+  }`}
+>
+  {item.status === 'assistindo' ? (
+    <Eye className="w-2.5 h-2.5" />
+  ) : (
+    <Trophy className="w-2.5 h-2.5" />
+  )}
+
+  {item.status === 'assistindo' ? 'Assistindo' : 'Completo'}
+</span>
 
           <span className="text-[10px] text-muted-foreground/60 font-medium">
             {item.type === 'movie'
@@ -766,9 +858,9 @@ const filteredItems = items.filter((item: any) => {
 <div className="flex flex-wrap items-center gap-2 text-white/50 text-xs">
   <span className="font-medium">
   {selectedItem.genres
-    ?.slice(0, 2)
-    .map((genre) => genre.name)
-    .join(' · ')}
+  ?.slice(0, 2)
+  .map((genre) => genreTranslations[genre.name] || genre.name)
+  .join(' · ')}
 </span>
 
   {selectedItem.genres && selectedItem.genres.length > 0 && (
@@ -791,16 +883,28 @@ const filteredItems = items.filter((item: any) => {
 
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-0.5 text-yellow-400">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`w-3.5 h-3.5 ${
-                        i < Math.round((selectedItem.customRating || 0) / 2)
-                          ? 'fill-current'
-                          : 'fill-transparent opacity-40'
-                      }`}
-                    />
-                  ))}
+                  {Array.from({ length: 5 }).map((_, i) => {
+  const rating = selectedItem.customRating || 0
+  const fullStars = Math.floor(rating / 2)
+  const hasHalfStar = rating % 2 !== 0
+
+  return (
+    <span key={i} className="relative w-3.5 h-3.5 inline-block">
+      <Star className="absolute inset-0 w-3.5 h-3.5 fill-transparent opacity-40" />
+
+      {(i < fullStars || (i === fullStars && hasHalfStar)) && (
+        <span
+          className="absolute inset-0 overflow-hidden"
+          style={{
+            width: i === fullStars && hasHalfStar ? '50%' : '100%',
+          }}
+        >
+          <Star className="w-3.5 h-3.5 fill-current" />
+        </span>
+      )}
+    </span>
+  )
+})}
                 </div>
 
                 <span className="text-[10px] text-white/40 font-medium ml-1">
@@ -819,9 +923,18 @@ const filteredItems = items.filter((item: any) => {
 >
         <div className="p-5 sm:p-7 space-y-6">
           <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-sm font-bold text-emerald-500">
-              🏆 Concluído
-            </span>
+            {selectedItem.status === 'assistindo' ? (
+  <span
+    className="text-sm font-bold"
+    style={{ color: 'lab(54.1736 13.3368 -74.6839)' }}
+  >
+    🎬 Assistindo
+  </span>
+) : (
+  <span className="text-sm font-bold text-emerald-500">
+    🏆 Concluído
+  </span>
+)}
 
             <span className="w-1 h-1 rounded-full bg-muted-foreground/20" />
 
