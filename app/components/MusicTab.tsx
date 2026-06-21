@@ -93,6 +93,8 @@ const manualRecentTrackImages: Record<string, string> = {
   'Strange|Vincemp3': 'https://imgs.search.brave.com/xhth5JeoERzsXFqjjG7m2yHL6-Z61CqiMDZYS3YvjtY/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pLnNj/ZG4uY28vaW1hZ2Uv/YWI2NzYxNmQwMDAw/MWUwMjI4YzJhN2Iw/MTBkZjcyYWMxYjli/YmY3Mg',
   'eyelids|Worm': 'https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/3d/5d/28/3d5d2830-24e9-750c-78c8-e6217af22438/artwork.jpg/600x600cc.webp',
   'Moist.|Vincemp3': 'https://imgs.search.brave.com/mhzpE2e-Xe6kfvzwXYVYYZjOKcoX4bH3A16SzZ6jgk4/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pMS5z/bmRjZG4uY29tL2Fy/dHdvcmtzLUtjamIz/cXBnMjJndWxWZEwt/M2o3cnl3LXQxMDgw/eDEwODAuanBn',
+  'influenced|Marceline': 'https://i.scdn.co/image/ab67616d00001e022bcab0a1c1049ab6fb434f19',
+  '157 CAFAJESTE X FINAL FANTASY - Slowed down|prodbymiri': 'https://image-cdn-ak.spotifycdn.com/image/ab67706c0000d72cffc64ed6edcd4e988f9168cd',
 }
 
 const manualArtistImages: Record<string, string> = {
