@@ -850,9 +850,13 @@ export default function Home() {
     }
   }
 
-  const avatarUrl = discordData?.discord_user.avatar
-? `https://cdn.discordapp.com/avatars/${discordData.discord_user.id}/${discordData.discord_user.avatar}.png?size=4096`
-    : 'https://cdn.discordapp.com/embed/avatars/0.png'
+  const avatarHash = discordData?.discord_user.avatar
+
+const avatarExt = avatarHash?.startsWith('a_') ? 'gif' : 'png'
+
+const avatarUrl = avatarHash
+  ? `https://cdn.discordapp.com/avatars/${discordData.discord_user.id}/${avatarHash}.${avatarExt}?size=4096`
+  : 'https://cdn.discordapp.com/embed/avatars/0.png'
 
   const musicaAtual = discordData?.listening_to_spotify? discordData.spotify : ultimaMusica
 
