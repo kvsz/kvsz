@@ -844,7 +844,7 @@ export default function Home() {
   const getStatusColor = (status: string) => {
     switch(status) {
       case 'online': return '#45ba50'
-      case 'idle': return '#d9a514'
+      case 'idle': return '#FE9A00'
       case 'dnd': return '#FF2056'
       default: return '#71717B'
     }
