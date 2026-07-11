@@ -19,9 +19,25 @@ type SpotifyData = {
 }
 
 type LanyardData = {
-  discord_user: { id: string; username: string; avatar: string; global_name: string }
+  discord_user: {
+    id: string
+    username: string
+    avatar: string
+    global_name: string
+
+    avatar_decoration_data?: {
+      asset: string
+      sku_id?: string
+    }
+  }
+
   discord_status: 'online' | 'idle' | 'dnd' | 'offline'
-  activities: Array<{ name: string; type: number; state?: string; details?: string }>
+  activities: Array<{
+    name: string
+    type: number
+    state?: string
+    details?: string
+  }>
   listening_to_spotify: boolean
   spotify?: SpotifyData
 }
@@ -249,6 +265,7 @@ function HomeContent({
   rotate,
   discordData,
   avatarUrl,
+  avatarDecoration,
   getStatusColor,
   setIgModalOpen
 }: any) {
@@ -382,8 +399,17 @@ function HomeContent({
     />
   </motion.div>
 
+  {avatarDecoration && (
+    <img
+      src={avatarDecoration}
+      alt=""
+      className="absolute inset-0 w-24 h-24 scale-[1.12] pointer-events-none select-none z-10"
+      draggable={false}
+    />
+  )}
+
   <div
-    className="absolute bottom-1 right-1 w-6 h-6 rounded-full border-4"
+    className="absolute bottom-1 right-1 w-6 h-6 rounded-full border-4 z-20"
     style={{
       backgroundColor: getStatusColor(discordData?.discord_status || 'offline'),
       borderColor: '#120c07',
@@ -695,13 +721,22 @@ function HomeContent({
 />
 
                 <div className="absolute inset-1 bg-[#120c07] rounded-full overflow-hidden">
-                  <img
-                    src={avatarUrl.replace('size=4096', 'size=512')}
-                    alt={discordData?.discord_user.global_name || '07'}
-                    className="object-cover w-full h-full"
-                    loading="eager"
-                  />
-                </div>
+  <img
+    src={avatarUrl.replace('size=4096', 'size=512')}
+    alt={discordData?.discord_user.global_name || '07'}
+    className="object-cover w-full h-full"
+    loading="eager"
+  />
+</div>
+
+{avatarDecoration && (
+  <img
+    src={avatarDecoration}
+    alt=""
+    className="absolute inset-0 w-full h-full scale-[1.20] pointer-events-none select-none z-10"
+    draggable={false}
+  />
+)}
               </div>
             </div>
 
@@ -858,6 +893,11 @@ const avatarUrl = avatarHash
   ? `https://cdn.discordapp.com/avatars/${discordData.discord_user.id}/${avatarHash}.${avatarExt}?size=4096`
   : 'https://cdn.discordapp.com/embed/avatars/0.png'
 
+  const avatarDecoration =
+  discordData?.discord_user.avatar_decoration_data?.asset
+    ? `https://cdn.discordapp.com/avatar-decoration-presets/${discordData.discord_user.avatar_decoration_data.asset}.png?size=2048`
+    : null
+
   const musicaAtual = discordData?.listening_to_spotify? discordData.spotify : ultimaMusica
 
   return (
@@ -997,6 +1037,7 @@ const avatarUrl = avatarHash
         rotate={rotate}
         discordData={discordData}
         avatarUrl={avatarUrl}
+        avatarDecoration={avatarDecoration}
         getStatusColor={getStatusColor}
         musicaAtual={musicaAtual}
         setIgModalOpen={setIgModalOpen}

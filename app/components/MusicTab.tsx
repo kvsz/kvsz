@@ -82,6 +82,9 @@ const manualTrackImages: Record<string, string> = {
    'golden retriever|Thorne':
   'https://i.scdn.co/image/ab67616d00001e026f4e4c07e8178879bb375fd2',
 
+  'KYS|torturedskin':
+  'https://source.boomplaymusic.com/group10/M00/09/13/3de695936da6435cafd7655094b79c62H3000W3000_464_464.webp'
+
 }
 
 const manualRecentTrackImages: Record<string, string> = {
@@ -497,25 +500,35 @@ const albumMeta = `${albumTracks.length} faixas · ${albumTotalMinutes}min`
   className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8"
 >
             <div className="flex items-center gap-4">
-              <div className="relative">
-                <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden border-4 border-primary/30 shadow-2xl shadow-primary/20 ring-4 ring-primary/10">
-                  <img 
-                    src={user?.image?.[3]?.['#text']?.replace('300x300', '174s') || 
-                         'https://lastfm.freetls.fastly.net/i/u/174s/2a96cbd8b46e442fc41c2b86b821562f.png'} 
-                    alt={USERNAME}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              </div>
+  <div className="relative">
+    <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden border-4 border-primary/30 shadow-2xl shadow-primary/20 ring-4 ring-primary/10">
+      <img
+        src={
+          user?.image?.[3]?.['#text']?.replace('300x300', '174s') ||
+          'https://lastfm.freetls.fastly.net/i/u/174s/2a96cbd8b46e442fc41c2b86b821562f.png'
+        }
+        alt={USERNAME}
+        className="w-full h-full object-cover"
+      />
+    </div>
 
-              <div className="flex-1">
-                <h2 className="text-2xl md:text-3xl font-black text-foreground mb-1 flex items-center gap-2">
-  {USERNAME}
+    <div className="absolute -bottom-2 -right-2 w-10 h-8 rounded-lg overflow-hidden shadow-xl rotate-12 hover:rotate-0 transition-transform duration-300">
+      <svg viewBox="0 0 900 600" className="w-full h-full">
+        <rect fill="#EEEEEE" width="900" height="200" />
+        <rect fill="#22408C" y="200" width="900" height="200" />
+        <rect fill="#BE0027" y="400" width="900" height="200" />
+      </svg>
+    </div>
+  </div>
 
-  <span className="text-xs px-2 py-0.5 rounded-full bg-[#37261b] text-[#b5825f] font-medium">
-    PRO
-  </span>
-</h2>
+  <div className="flex-1">
+    <h2 className="text-2xl md:text-3xl font-black text-foreground mb-1 flex items-center gap-2">
+      {USERNAME}
+
+      <span className="text-xs px-2 py-0.5 rounded-full bg-[#37261b] text-[#b5825f] font-medium">
+        PRO
+      </span>
+    </h2>
                 <p className="text-[#8d7d6e] text-sm">@l9ve</p>
                 <div className="flex items-center gap-4 text-xs text-[#8d7d6e] mt-3">
                   <span className="flex items-center gap-1">
@@ -850,9 +863,9 @@ const albumMeta = `${albumTracks.length} faixas · ${albumTotalMinutes}min`
 
           <div className="flex-1">
 
-            <h4 className="text-2xl font-black text-white mb-2 leading-tight">
-              {topArtist.name}
-            </h4>
+            <h4 className="text-2xl font-black text-[lab(90.7505_1.8031_7.45089)] mb-2 leading-tight">
+  {topArtist.name}
+</h4>
 
             <div className="grid grid-cols-2 gap-3">
 
@@ -889,7 +902,14 @@ const albumMeta = `${albumTracks.length} faixas · ${albumTotalMinutes}min`
               <span>Seu artista mais ouvido</span>
             </div>
 
-            <ExternalLink className="w-4 h-4 text-[#b5825f] hover:text-white transition-colors cursor-pointer" />
+            <a
+  href={topArtist.url}
+  target="_blank"
+  rel="noopener noreferrer"
+  className="text-[#b5825f] hover:text-white transition-colors"
+>
+  <ExternalLink className="w-4 h-4 cursor-pointer" />
+</a>
           </div>
         </div>
       </div>
