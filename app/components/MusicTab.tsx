@@ -83,7 +83,10 @@ const manualTrackImages: Record<string, string> = {
   'https://i.scdn.co/image/ab67616d00001e026f4e4c07e8178879bb375fd2',
 
   'KYS|torturedskin':
-  'https://source.boomplaymusic.com/group10/M00/09/13/3de695936da6435cafd7655094b79c62H3000W3000_464_464.webp'
+  'https://source.boomplaymusic.com/group10/M00/09/13/3de695936da6435cafd7655094b79c62H3000W3000_464_464.webp',
+
+  'first strike|jades':
+  'https://i1.sndcdn.com/artworks-2B2K3k5wyKw4qzuK-Cyrz3A-t500x500.png',
 
 }
 
@@ -98,6 +101,7 @@ const manualRecentTrackImages: Record<string, string> = {
   'Moist.|Vincemp3': 'https://imgs.search.brave.com/mhzpE2e-Xe6kfvzwXYVYYZjOKcoX4bH3A16SzZ6jgk4/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pMS5z/bmRjZG4uY29tL2Fy/dHdvcmtzLUtjamIz/cXBnMjJndWxWZEwt/M2o3cnl3LXQxMDgw/eDEwODAuanBn',
   'influenced|Marceline': 'https://i.scdn.co/image/ab67616d00001e022bcab0a1c1049ab6fb434f19',
   '157 CAFAJESTE X FINAL FANTASY - Slowed down|prodbymiri': 'https://image-cdn-ak.spotifycdn.com/image/ab67706c0000d72cffc64ed6edcd4e988f9168cd',
+  'KYS|torturedskin': 'https://i1.sndcdn.com/artworks-0NXgSwyJq3cxgKOr-n7F2cg-t500x500.jpg',
 }
 
 const manualArtistImages: Record<string, string> = {

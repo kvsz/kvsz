@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 export async function GET() {
-  const DISCORD_ID = '1184191270248251512'
+  const DISCORD_ID = '1314652031675531380'
 
   const res = await fetch(`https://api.lanyard.rest/v1/users/${DISCORD_ID}`, {
     cache: 'no-store'
