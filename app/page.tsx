@@ -125,7 +125,7 @@
 
     const igData: InstagramData = {
       username: '21scy',
-      avatar: 'https://i.pinimg.com/736x/82/5c/d3/825cd343b9f8022d4adce32bb6b44d2d.jpg',
+      avatar: 'https://i.pinimg.com/736x/72/b5/50/72b550d2616825119ebf7ed7ee46ac63.jpg',
       posts: 0,
       followers: 21,
       following: 30
