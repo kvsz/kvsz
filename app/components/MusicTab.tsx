@@ -88,6 +88,9 @@ const manualTrackImages: Record<string, string> = {
   'first strike|jades':
   'https://i1.sndcdn.com/artworks-2B2K3k5wyKw4qzuK-Cyrz3A-t500x500.png',
 
+  'nothing less, nothing more|Lucille':
+  'https://imgs.search.brave.com/jX2BOjFNxsPuKA19VMEwn6LsvodE868WnXLzsKcktiM/rs:fit:200:200:1:0/g:ce/aHR0cHM6Ly9pMS5z/bmRjZG4uY29tL2Fy/dHdvcmtzLVRJQkRL/Z25kRk1QbC0wLXQx/MDgweDEwODAuanBn',
+
 }
 
 const manualRecentTrackImages: Record<string, string> = {
