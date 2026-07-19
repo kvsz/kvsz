@@ -1,5 +1,10 @@
   'use client'
-  import { useState, useEffect, useRef } from 'react'
+  import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+} from 'react'
   import { motion, AnimatePresence, useAnimation } from 'framer-motion'
   import AnimatedBackground from './AnimatedBackground'
   import { useSpotify } from '@/hooks/useSpotify'
@@ -8,7 +13,7 @@
   import { inter } from '@/app/layout'
   import {
     User, Info, Gamepad, Users, Calendar, Music,
-    MessageCircle, Disc, Headphones, Instagram, Film
+    MessageCircle, Disc, Headphones, Instagram, Film, LockKeyhole, ChevronLeft, ChevronRight, Handbag, UserRoundCheck
   } from 'lucide-react'
 
   type SpotifyData = {
@@ -48,7 +53,46 @@
     posts: number
     followers: number
     following: number
+    bio: string
   }
+
+  type RobloxFriend = {
+  id: number
+  name: string
+  displayName: string
+  avatar?: string
+}
+
+type RobloxGroup = {
+  id: number
+  name: string
+  memberCount?: number
+  role: string
+  icon?: string
+}
+
+type RobloxWearingItem = {
+  id: number
+  name: string
+  image?: string
+}
+
+type RobloxData = {
+  id: number
+  name: string
+  displayName: string
+  description: string
+  created: string
+  avatar?: string
+  friends: number
+  followers: number
+  following: number
+  wearing: RobloxWearingItem[]
+  friendsList: RobloxFriend[]
+  totalFriendPages: number
+  groups: RobloxGroup[]
+  
+}
 
   const SpotifyIcon = () => (
     <svg
@@ -124,12 +168,13 @@
     const [loading, setLoading] = useState(true)
 
     const igData: InstagramData = {
-      username: '21scy',
-      avatar: 'https://i.pinimg.com/736x/72/b5/50/72b550d2616825119ebf7ed7ee46ac63.jpg',
-      posts: 0,
-      followers: 21,
-      following: 30
-    }
+  username: '21scy',
+  avatar: 'https://i.pinimg.com/736x/72/b5/50/72b550d2616825119ebf7ed7ee46ac63.jpg',
+  posts: 0,
+  followers: 21,
+  following: 30,
+  bio: 'nothing less,\nnothing more',
+}
 
     useEffect(() => {
       if (!open) return
@@ -165,6 +210,7 @@
                   {loading? (
                     <>
                       <div className="flex items-start gap-4 mb-5">
+                        
                         <div className="relative flex-shrink-0">
                           <div className="w-16 h-16 rounded-full overflow-hidden bg-[#221812] ring-2 ring-offset-2 ring-offset-[#120c07] ring-[#291f18] animate-pulse" />
                         </div>
@@ -173,12 +219,15 @@
                           <div className="h-4 w-24 rounded bg-[#221812] animate-pulse" />
                         </div>
                       </div>
+                      
                       <div className="flex items-center justify-around py-4 mb-4 bg-[#221812]/30 rounded-lg border border-[#291f18]/50">
                         {[1,2,3].map(i => (
                           <div key={i} className="text-center space-y-1">
                             <div className="h-5 w-8 mx-auto rounded bg-[#221812] animate-pulse" />
                             <div className="h-3 w-16 rounded bg-[#221812] animate-pulse" />
+                            
                           </div>
+                          
                         ))}
                       </div>
                       <div className="h-10 w-full rounded-md bg-[#221812] animate-pulse" />
@@ -186,45 +235,78 @@
                   ) : (
                     <>
                       <div className="flex items-start gap-4 mb-5">
-                        <div className="relative flex-shrink-0">
-                          <div className="w-16 h-16 rounded-full overflow-hidden bg-[#221812] ring-2 ring-offset-2 ring-offset-[#120c07] ring-[#291f18]">
-                            <img
-                              alt={igData.username}
-                              loading="lazy"
-                              width="64"
-                              height="64"
-                              decoding="async"
-                              className="object-cover w-full h-full"
-                              src={igData.avatar}
-                            />
-                          </div>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h2 className="text-lg font-bold text-[#ede3d6] mb-0.5">
-                            {igData.username}
-                          </h2>
-                          <p className="text-sm text-[#8d7d6e] font-mono">
-                            @{igData.username}
-                          </p>
-                        </div>
-                      </div>
+  <div className="relative flex-shrink-0">
+    <div className="w-16 h-16 rounded-full overflow-hidden bg-[#221812] ring-2 ring-offset-2 ring-offset-[#120c07] ring-[#291f18]">
+      <img
+        alt={igData.username}
+        loading="lazy"
+        width="64"
+        height="64"
+        decoding="async"
+        className="object-cover w-full h-full"
+        src={igData.avatar}
+      />
+    </div>
 
-                      <div className="flex items-center justify-around py-4 mb-4 bg-[#221812]/30 rounded-lg border border-[#291f18]/50">
-                        <div className="text-center">
-                          <div className="text-lg font-bold text-[#ede3d6]">{igData.posts}</div>
-                          <div className="text-xs text-[#8d7d6e]">Posts</div>
-                        </div>
-                        <div className="w-px h-10 bg-[#291f18]"></div>
-                        <div className="text-center">
-                          <div className="text-lg font-bold text-[#ede3d6]">{igData.followers}</div>
-                          <div className="text-xs text-[#8d7d6e]">Seguidores</div>
-                        </div>
-                        <div className="w-px h-10 bg-[#291f18]"></div>
-                        <div className="text-center">
-                          <div className="text-lg font-bold text-[#ede3d6]">{igData.following}</div>
-                          <div className="text-xs text-[#8d7d6e]">Seguindo</div>
-                        </div>
-                      </div>
+    {/* Conta privada */}
+    <div
+      className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-2 flex items-center justify-center"
+      style={{
+        backgroundColor: '#120c07',
+        borderColor: '#291f18',
+        color: '#574b40',
+      }}
+    >
+      <LockKeyhole className="w-3 h-3" strokeWidth={2.5} />
+    </div>
+  </div>
+
+  <div className="flex-1 min-w-0">
+    <h2 className="text-lg font-bold text-[#ede3d6] mb-0.5">
+      {igData.username}
+    </h2>
+
+    <p className="text-sm text-[#8d7d6e] font-mono">
+      @{igData.username}
+    </p>
+  </div>
+</div>
+
+{/* BIO — COLE EXATAMENTE AQUI */}
+<div className="flex items-start gap-3 mb-5">
+  <div className="w-1 self-stretch rounded-full bg-[#b5825f]" />
+
+  <p className="text-sm font-medium text-[#ede3d6] whitespace-pre-line leading-relaxed">
+    {igData.bio}
+  </p>
+</div>
+
+<div className="flex items-center justify-around py-4 mb-4 bg-[#221812]/30 rounded-lg border border-[#291f18]/50">
+  <div className="text-center">
+    <div className="text-lg font-bold text-[#ede3d6]">
+      {igData.posts}
+    </div>
+    <div className="text-xs text-[#8d7d6e]">Posts</div>
+  </div>
+
+  <div className="w-px h-10 bg-[#291f18]" />
+
+  <div className="text-center">
+    <div className="text-lg font-bold text-[#ede3d6]">
+      {igData.followers}
+    </div>
+    <div className="text-xs text-[#8d7d6e]">Seguidores</div>
+  </div>
+
+  <div className="w-px h-10 bg-[#291f18]" />
+
+  <div className="text-center">
+    <div className="text-lg font-bold text-[#ede3d6]">
+      {igData.following}
+    </div>
+    <div className="text-xs text-[#8d7d6e]">Seguindo</div>
+  </div>
+</div>
 
                       <a
                         href={`https://www.instagram.com/${igData.username}`} 
@@ -250,6 +332,858 @@
     )
   }
 
+  function formatMemberCount(count?: number) {
+  const value = count || 0
+
+  if (value < 1000) {
+    return `${value} Members`
+  }
+
+  if (value < 1_000_000) {
+    const formatted =
+      value >= 10_000
+        ? Math.floor(value / 1000).toString()
+        : (value / 1000).toFixed(1).replace('.0', '')
+
+    return `${formatted}K+ Members`
+  }
+
+  const formatted =
+    value >= 10_000_000
+      ? Math.floor(value / 1_000_000).toString()
+      : (value / 1_000_000).toFixed(1).replace('.0', '')
+
+  return `${formatted}M+ Members`
+}
+
+  function RobloxModal({
+  open,
+  onClose,
+}: {
+  open: boolean
+  onClose: () => void
+}) {
+  const ROBLOX_ID = '1075117505'
+
+const [loading, setLoading] = useState(true)
+const [data, setData] = useState<RobloxData | null>(null)
+
+const [friendsPage, setFriendsPage] = useState(0)
+
+const [wearingPage, setWearingPage] = useState(0)
+const [communitiesPage, setCommunitiesPage] = useState(0)
+
+const [friendsPages, setFriendsPages] = useState<
+  Record<number, RobloxFriend[]>
+>({})
+
+const [friendsLoading, setFriendsLoading] = useState(false)
+
+/*
+ * Carregamento inicial do modal.
+ * Carrega o perfil, as comunidades e somente os 14 primeiros amigos.
+ */
+useEffect(() => {
+  if (!open) return
+
+  setFriendsPage(0)
+  setWearingPage(0)
+setCommunitiesPage(0)
+  setFriendsPages({})
+  setFriendsLoading(false)
+  setData(null)
+
+  const fetchRobloxData = async () => {
+    setLoading(true)
+
+    try {
+      const response = await fetch(
+        `/api/roblox?userId=${ROBLOX_ID}&page=0`,
+      )
+
+      if (!response.ok) {
+        throw new Error(
+          'Não foi possível carregar o perfil do Roblox',
+        )
+      }
+
+      const json: RobloxData = await response.json()
+
+      setData(json)
+
+      // Salva a primeira página no cache.
+      setFriendsPages({
+        0: json.friendsList,
+      })
+    } catch (error) {
+      console.error('Erro ao carregar Roblox:', error)
+      setData(null)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  fetchRobloxData()
+}, [open])
+
+const createdAt = data?.created
+  ? new Date(data.created).toLocaleDateString('pt-BR')
+  : '---'
+
+const totalFriendPages = data?.totalFriendPages || 1
+
+const visibleFriends = friendsPages[friendsPage] || []
+
+const WEARING_PER_PAGE = 14
+const COMMUNITIES_PER_PAGE = 4
+
+const totalWearingPages = Math.max(
+  1,
+  Math.ceil((data?.wearing.length || 0) / WEARING_PER_PAGE),
+)
+
+const totalCommunityPages = Math.max(
+  1,
+  Math.ceil((data?.groups.length || 0) / COMMUNITIES_PER_PAGE),
+)
+
+const visibleWearingItems =
+  data?.wearing.slice(
+    wearingPage * WEARING_PER_PAGE,
+    wearingPage * WEARING_PER_PAGE + WEARING_PER_PAGE,
+  ) || []
+
+const visibleCommunities =
+  data?.groups.slice(
+    communitiesPage * COMMUNITIES_PER_PAGE,
+    communitiesPage * COMMUNITIES_PER_PAGE +
+      COMMUNITIES_PER_PAGE,
+  ) || []
+
+/*
+ * Carrega uma página de amigos.
+ *
+ * Se ela já estiver no cache, somente troca de página.
+ * Se ainda não estiver, busca os 14 amigos na API.
+ */
+const loadFriendsPage = useCallback(
+  async (
+    targetPage: number,
+    background = false,
+  ) => {
+    if (
+      targetPage < 0 ||
+      targetPage >= totalFriendPages
+    ) {
+      return
+    }
+
+    /*
+     * A página já foi carregada.
+     * Não precisa fazer uma nova requisição.
+     */
+    if (friendsPages[targetPage]) {
+      if (!background) {
+        setFriendsPage(targetPage)
+      }
+
+      return
+    }
+
+    if (!background) {
+      setFriendsLoading(true)
+    }
+
+    try {
+      const response = await fetch(
+        `/api/roblox?userId=${ROBLOX_ID}&friendsOnly=1&page=${targetPage}`,
+      )
+
+      if (!response.ok) {
+        throw new Error(
+          'Não foi possível carregar esta página de amigos',
+        )
+      }
+
+      const json: {
+        page: number
+        friendsList: RobloxFriend[]
+        totalFriendPages: number
+      } = await response.json()
+
+      /*
+       * Salva a nova página sem apagar as páginas anteriores.
+       */
+      setFriendsPages((currentPages) => ({
+        ...currentPages,
+        [targetPage]: json.friendsList,
+      }))
+
+      /*
+       * No pré-carregamento em segundo plano,
+       * não mudamos a página visível.
+       */
+      if (!background) {
+        setFriendsPage(targetPage)
+      }
+    } catch (error) {
+      console.error(
+        'Erro ao carregar amigos:',
+        error,
+      )
+    } finally {
+      if (!background) {
+        setFriendsLoading(false)
+      }
+    }
+  },
+  [
+    friendsPages,
+    totalFriendPages,
+  ],
+)
+
+/*
+ * Pré-carrega invisivelmente a próxima página.
+ *
+ * Exemplo:
+ * enquanto a página 1 está visível,
+ * a página 2 é carregada depois de 350 ms.
+ */
+useEffect(() => {
+  if (!open || !data) return
+
+  const nextPage = friendsPage + 1
+
+  if (nextPage >= totalFriendPages) return
+  if (friendsPages[nextPage]) return
+
+  const prefetchTimer = window.setTimeout(() => {
+    loadFriendsPage(nextPage, true)
+  }, 350)
+
+  return () => {
+    window.clearTimeout(prefetchTimer)
+  }
+}, [
+  open,
+  data,
+  friendsPage,
+  totalFriendPages,
+  friendsPages,
+  loadFriendsPage,
+])
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <>
+          {/* Mesmo fundo/fade do modal do Instagram */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2, ease: 'easeInOut' }}
+            onClick={onClose}
+            className="fixed inset-0 z-[60] bg-black/50"
+          />
+
+          {/* Mesma animação de abertura e fechamento do Instagram */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ duration: 0.2, ease: 'easeInOut' }}
+            className="
+              fixed left-1/2 top-1/2 z-[70]
+              w-[min(1180px,94vw)] h-[min(720px,90vh)]
+              -translate-x-1/2 -translate-y-1/2
+            "
+          >
+            <div
+              className="
+                relative w-full h-full overflow-hidden
+                rounded-2xl border border-[#291f18]
+                bg-[#120c07] shadow-2xl
+              "
+            >
+              <button
+                onClick={onClose}
+                aria-label="Fechar modal"
+                className="
+                  absolute left-4 top-4 z-50
+                  flex h-8 w-8 items-center justify-center
+                  rounded-full bg-[#0f0a06]/90
+                  text-[#8d7d6e] transition-colors
+                  hover:text-[#ede3d6]
+                "
+              >
+                <span className="text-xl leading-none">×</span>
+              </button>
+
+              {loading ? (
+                <div className="grid h-full grid-cols-[330px_1fr]">
+                  <div className="border-r border-[#291f18] p-6">
+                    <div className="h-72 rounded-xl bg-[#221812] animate-pulse" />
+                    <div className="mt-6 h-8 w-40 rounded bg-[#221812] animate-pulse" />
+                    <div className="mt-3 h-4 w-28 rounded bg-[#221812] animate-pulse" />
+                  </div>
+
+                  <div className="space-y-8 p-7">
+                    <div className="h-8 w-48 rounded bg-[#221812] animate-pulse" />
+                    <div className="grid grid-cols-5 gap-3">
+                      {[1, 2, 3, 4, 5].map((item) => (
+                        <div
+                          key={item}
+                          className="h-36 rounded-xl bg-[#221812] animate-pulse"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : data ? (
+                <div className="grid h-full grid-cols-[330px_minmax(0,1fr)]">
+                  {/* Coluna esquerda */}
+                  <aside className="flex h-full flex-col border-r border-[#291f18] p-6 pt-14">
+                    <div className="flex h-72 items-center justify-center overflow-hidden rounded-xl bg-[#1a110b]">
+                      <img
+                        src={data.avatar}
+                        alt={`Avatar de ${data.displayName}`}
+                        className="h-full w-full object-contain"
+                      />
+                    </div>
+
+                    <div className="mt-6">
+                      <h2 className="text-3xl font-black text-[#ede3d6]">
+                        {data.displayName}
+                      </h2>
+
+                      <p className="mt-1 text-sm text-[#8d7d6e]">
+                        @{data.name}
+                      </p>
+
+                      {data.description && (
+                        <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-[#a99a8c]">
+                          {data.description}
+                        </p>
+                      )}
+
+                      <div className="mt-5 flex items-center gap-2 text-xs text-[#8d7d6e]">
+                        <Calendar className="h-4 w-4" />
+                        <span>Entrou em {createdAt}</span>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 grid grid-cols-3 gap-2">
+                      <div className="rounded-xl border border-[#291f18] bg-[#1a110b] p-3 text-center">
+                        <strong className="block text-xl text-[#ede3d6]">
+                          {data.friends.toLocaleString('pt-BR')}
+                        </strong>
+                        <span className="text-xs text-[#8d7d6e]">
+                          Amigos
+                        </span>
+                      </div>
+
+                      <div className="rounded-xl border border-[#291f18] bg-[#1a110b] p-3 text-center">
+                        <strong className="block text-xl text-[#ede3d6]">
+                          {data.followers.toLocaleString('pt-BR')}
+                        </strong>
+                        <span className="text-xs text-[#8d7d6e]">
+                          Seguidores
+                        </span>
+                      </div>
+
+                      <div className="rounded-xl border border-[#291f18] bg-[#1a110b] p-3 text-center">
+                        <strong className="block text-xl text-[#ede3d6]">
+                          {data.following.toLocaleString('pt-BR')}
+                        </strong>
+                        <span className="text-xs text-[#8d7d6e]">
+                          Seguindo
+                        </span>
+                      </div>
+                    </div>
+
+                    <a
+                      href={`https://www.roblox.com/users/${data.id}/profile`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="
+                        mt-6 inline-flex h-11 items-center justify-center
+                        rounded-xl bg-[#b5825f]
+                        text-sm font-medium text-[#120c07]
+                        transition-transform hover:scale-[1.02]
+                      "
+                    >
+                      Ver perfil
+                    </a>
+                  </aside>
+
+                  {/* Coluna direita */}
+                  <section className="h-full overflow-y-auto p-7 modal-scrollbar">
+
+                    <div className="mb-10">
+  <div className="mb-5 flex items-center justify-between">
+    <h3 className="flex items-center gap-2 text-xl font-black text-[#ede3d6]">
+  <Handbag
+    className="h-5 w-5 text-[#8d7d6e]"
+    strokeWidth={2}
+  />
+  Vestindo Agora
+</h3>
+
+    <div className="flex items-center gap-2">
+  <button
+    type="button"
+    onClick={() =>
+      setWearingPage((current) =>
+        Math.max(0, current - 1),
+      )
+    }
+    disabled={wearingPage === 0}
+    aria-label="Página anterior dos itens"
+    className="
+      flex h-8 w-8 items-center justify-center
+      rounded-full border border-[#291f18]
+      text-[#8d7d6e] transition-all
+      hover:bg-[#1a110b]
+      hover:text-[#ede3d6]
+      disabled:pointer-events-none
+      disabled:opacity-30
+    "
+  >
+    <ChevronLeft
+      size={16}
+      strokeWidth={2.2}
+    />
+  </button>
+
+  <span
+    className="
+      min-w-[30px] text-center
+      text-xs font-medium text-[#8d7d6e]
+    "
+  >
+    {wearingPage + 1}/{totalWearingPages}
+  </span>
+
+  <button
+    type="button"
+    onClick={() =>
+      setWearingPage((current) =>
+        Math.min(
+          totalWearingPages - 1,
+          current + 1,
+        ),
+      )
+    }
+    disabled={
+      wearingPage >= totalWearingPages - 1
+    }
+    aria-label="Próxima página dos itens"
+    className="
+      flex h-8 w-8 items-center justify-center
+      rounded-full border border-[#291f18]
+      text-[#8d7d6e] transition-all
+      hover:bg-[#1a110b]
+      hover:text-[#ede3d6]
+      disabled:pointer-events-none
+      disabled:opacity-30
+    "
+  >
+    <ChevronRight
+      size={16}
+      strokeWidth={2.2}
+    />
+  </button>
+</div>
+  </div>
+
+  <div className="relative min-h-[290px]">
+  <AnimatePresence mode="wait">
+    <motion.div
+      key={wearingPage}
+      initial={{
+        opacity: 0,
+        x: 20,
+      }}
+      animate={{
+        opacity: 1,
+        x: 0,
+      }}
+      exit={{
+        opacity: 0,
+        x: -20,
+      }}
+      transition={{
+        duration: 0.18,
+      }}
+      className="grid grid-cols-7 gap-3"
+    >
+      {visibleWearingItems.map((item) => (
+        <a
+          key={item.id}
+          href={`https://www.roblox.com/catalog/${item.id}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="
+            group min-w-[62px] overflow-hidden rounded-xl
+            border border-[#291f18] bg-[#1a110b]
+            transition-all hover:-translate-y-1
+            hover:border-[#b5825f]/50
+          "
+        >
+          <div
+            className="
+              flex aspect-square items-center
+              justify-center overflow-hidden
+              bg-[#221812]
+            "
+          >
+            {item.image ? (
+              <img
+                src={item.image}
+                alt={item.name}
+                loading="eager"
+                decoding="async"
+                draggable={false}
+                className="
+                  h-full w-full select-none object-contain
+                  transition-transform group-hover:scale-105
+                "
+              />
+            ) : (
+              <div className="h-full w-full animate-pulse bg-[#221812]" />
+            )}
+          </div>
+
+          <div className="p-2.5">
+            <p
+              title={item.name}
+              className="
+                truncate text-xs font-medium
+                text-[#ede3d6]
+              "
+            >
+              {item.name}
+            </p>
+          </div>
+        </a>
+      ))}
+    </motion.div>
+  </AnimatePresence>
+</div>
+</div>
+                    <div>
+                      <div className="mb-5 flex items-center justify-between">
+  <h3 className="flex items-center gap-2 text-xl font-black text-[#ede3d6]">
+  <UserRoundCheck
+    className="h-5 w-5 text-[#8d7d6e]"
+    strokeWidth={2}
+  />
+  Amigos
+</h3>
+
+  <div className="flex items-center gap-2">
+  <button
+    type="button"
+    onClick={() =>
+      loadFriendsPage(friendsPage - 1)
+    }
+    disabled={
+      friendsPage === 0 ||
+      friendsLoading
+    }
+    aria-label="Página anterior"
+    className="
+      flex h-8 w-8 items-center justify-center
+      rounded-full border border-[#291f18]
+      text-[#8d7d6e]
+      transition-all
+      hover:bg-[#1a110b]
+      hover:text-[#ede3d6]
+      disabled:pointer-events-none
+      disabled:opacity-30
+    "
+  >
+    <ChevronLeft
+      size={16}
+      strokeWidth={2.2}
+    />
+  </button>
+
+  <span
+    className="
+      min-w-[30px] text-center
+      text-xs font-medium text-[#8d7d6e]
+    "
+  >
+    {friendsPage + 1}/{totalFriendPages}
+  </span>
+
+  <button
+    type="button"
+    onClick={() =>
+      loadFriendsPage(friendsPage + 1)
+    }
+    disabled={
+      friendsPage >= totalFriendPages - 1 ||
+      friendsLoading
+    }
+    aria-label="Próxima página"
+    className="
+      flex h-8 w-8 items-center justify-center
+      rounded-full border border-[#291f18]
+      text-[#8d7d6e]
+      transition-all
+      hover:bg-[#1a110b]
+      hover:text-[#ede3d6]
+      disabled:pointer-events-none
+      disabled:opacity-30
+    "
+  >
+    <ChevronRight
+      size={16}
+      strokeWidth={2.2}
+    />
+  </button>
+</div>
+</div>
+
+<div className="relative min-h-[214px]">
+  <AnimatePresence mode="wait">
+    <motion.div
+      key={friendsPage}
+      initial={{
+        opacity: 0,
+        x: 20,
+      }}
+      animate={{
+        opacity: friendsLoading ? 0.35 : 1,
+        x: 0,
+      }}
+      exit={{
+        opacity: 0,
+        x: -20,
+      }}
+      transition={{
+        duration: 0.18,
+      }}
+      className="
+  grid grid-cols-[repeat(8,80px)]
+  gap-x-5 gap-y-5
+"
+    >
+      {visibleFriends.map((friend) => (
+        <a
+          key={friend.id}
+          href={`https://www.roblox.com/users/${friend.id}/profile`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group min-w-0 text-center"
+        >
+          <div
+            className="
+              mx-auto h-20 w-20 overflow-hidden
+              rounded-full
+              border border-[#35271e]
+              bg-[#1a110b]
+              transition-transform
+              group-hover:scale-105
+            "
+          >
+            {friend.avatar ? (
+              <img
+                src={friend.avatar}
+                alt={friend.displayName}
+                loading="lazy"
+                decoding="async"
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div
+                className="
+                  h-full w-full
+                  animate-pulse bg-[#221812]
+                "
+              />
+            )}
+          </div>
+
+          <p
+  title={friend.displayName || friend.name}
+  className="
+    mt-2 block w-20 truncate text-center
+    text-xs font-medium leading-4 text-[#ede3d6]
+  "
+>
+  {friend.displayName || friend.name}
+</p>
+        </a>
+      ))}
+    </motion.div>
+  </AnimatePresence>
+
+  {friendsLoading && (
+    <div
+      className="
+        absolute inset-0
+        flex items-center justify-center
+      "
+    >
+      <div
+        className="
+          h-7 w-7 animate-spin rounded-full
+          border-2 border-[#291f18]
+          border-t-[#b5825f]
+        "
+      />
+    </div>
+  )}
+</div>
+                    </div>
+
+                    <div className="mt-10">
+                      <div className="mb-5 flex items-center justify-between">
+                        <h3 className="flex items-center gap-2 text-xl font-black text-[#ede3d6]">
+  <Users
+    className="h-5 w-5 text-[#8d7d6e]"
+    strokeWidth={2}
+  />
+  Comunidades
+</h3>
+
+                        <div className="flex items-center gap-2">
+  <button
+    type="button"
+    onClick={() =>
+      setCommunitiesPage((current) =>
+        Math.max(0, current - 1),
+      )
+    }
+    disabled={communitiesPage === 0}
+    aria-label="Página anterior das comunidades"
+    className="
+      flex h-8 w-8 items-center justify-center
+      rounded-full border border-[#291f18]
+      text-[#8d7d6e] transition-all
+      hover:bg-[#1a110b]
+      hover:text-[#ede3d6]
+      disabled:pointer-events-none
+      disabled:opacity-30
+    "
+  >
+    <ChevronLeft
+      size={16}
+      strokeWidth={2.2}
+    />
+  </button>
+
+  <span
+    className="
+      min-w-[30px] text-center
+      text-xs font-medium text-[#8d7d6e]
+    "
+  >
+    {communitiesPage + 1}/{totalCommunityPages}
+  </span>
+
+  <button
+    type="button"
+    onClick={() =>
+      setCommunitiesPage((current) =>
+        Math.min(
+          totalCommunityPages - 1,
+          current + 1,
+        ),
+      )
+    }
+    disabled={
+      communitiesPage >= totalCommunityPages - 1
+    }
+    aria-label="Próxima página das comunidades"
+    className="
+      flex h-8 w-8 items-center justify-center
+      rounded-full border border-[#291f18]
+      text-[#8d7d6e] transition-all
+      hover:bg-[#1a110b]
+      hover:text-[#ede3d6]
+      disabled:pointer-events-none
+      disabled:opacity-30
+    "
+  >
+    <ChevronRight
+      size={16}
+      strokeWidth={2.2}
+    />
+  </button>
+</div>
+                      </div>
+
+                      <div className="grid grid-cols-[repeat(4,184px)] gap-4">
+                        {visibleCommunities.map((group) => (
+                          <a
+                            key={group.id}
+                            href={`https://www.roblox.com/communities/${group.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="
+                              group overflow-hidden rounded-xl
+                              border border-[#291f18] bg-[#1a110b]
+                              transition-all hover:-translate-y-1
+                              hover:border-[#b5825f]/50
+                            "
+                          >
+                            <div className="h-[168px] overflow-hidden bg-[#221812]">
+                              {group.icon ? (
+                                <img
+                                  src={group.icon}
+                                  alt={group.name}
+                                  className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                                />
+                              ) : (
+                                <div className="flex h-full items-center justify-center">
+                                  <Users className="h-8 w-8 text-[#574b40]" />
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="p-3">
+                              <p className="truncate text-sm font-bold text-[#ede3d6]">
+                                {group.name}
+                              </p>
+
+                              <p className="mt-1 truncate text-xs text-[#8d7d6e]">
+  {formatMemberCount(group.memberCount)}
+</p>
+                            </div>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  </section>
+                </div>
+              ) : (
+                <div className="flex h-full flex-col items-center justify-center">
+                  <p className="text-[#ede3d6]">
+                    Não foi possível carregar o perfil.
+                  </p>
+
+                  <button
+                    onClick={onClose}
+                    className="mt-4 rounded-lg bg-[#221812] px-5 py-2 text-sm text-[#8d7d6e]"
+                  >
+                    Fechar
+                  </button>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  )
+}
+
   function formatTime(ms: number) {
     const totalSeconds = Math.floor(ms / 1000)
     const minutes = Math.floor(totalSeconds / 60)
@@ -258,17 +1192,18 @@
   }
 
   function HomeContent({
-    cardRef,
-    handleMouseMove,
-    handleMouseLeave,
-    isHovering,
-    rotate,
-    discordData,
-    avatarUrl,
-    avatarDecoration,
-    getStatusColor,
-    setIgModalOpen
-  }: any) {
+  cardRef,
+  handleMouseMove,
+  handleMouseLeave,
+  isHovering,
+  rotate,
+  discordData,
+  avatarUrl,
+  avatarDecoration,
+  getStatusColor,
+  setIgModalOpen,
+  setRobloxModalOpen,
+}: any) {
     const spotify = useSpotify() // <- USA O HOOK AGORA
     const [profileModalOpen, setProfileModalOpen] = useState(false)
     
@@ -637,22 +1572,26 @@
             </svg>
           </a>
 
-          <a
-            href="https://www.roblox.com/users/1075117505/profile"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-9 h-9 md:w-11 md:h-11 rounded-xl border border-[#291f18] flex items-center justify-center bg-[#22181280] text-[#8d7d6e] hover:bg-[#221812] hover:text-[#ede3d6] hover:-translate-y-0.5 hover:scale-110 transition-all duration-150"
-            style={{
-              borderTopLeftRadius: '16px',
-              borderTopRightRadius: '16px',
-              borderBottomLeftRadius: '16px',
-              borderBottomRightRadius: '16px'
-            }}
-          >
-            <svg className="w-4 h-4 md:w-5 md:h-5" viewBox="0 0 48 48" fill="currentColor">
-              <path d="M10.328 0L0.32 37.856L37.672 48L47.68 10.144L10.328 0ZM26.382 30.328L17.504 27.988L19.852 19.102L28.73 21.442L26.382 30.328Z"></path>
-            </svg>
-          </a>
+          <button
+  type="button"
+  onClick={() => setRobloxModalOpen(true)}
+  aria-label="Abrir perfil do Roblox"
+  className="w-9 h-9 md:w-11 md:h-11 rounded-xl border border-[#291f18] flex items-center justify-center bg-[#22181280] text-[#8d7d6e] hover:bg-[#221812] hover:text-[#ede3d6] hover:-translate-y-0.5 hover:scale-110 transition-all duration-150"
+  style={{
+    borderTopLeftRadius: '16px',
+    borderTopRightRadius: '16px',
+    borderBottomLeftRadius: '16px',
+    borderBottomRightRadius: '16px',
+  }}
+>
+  <svg
+    className="w-4 h-4 md:w-5 md:h-5"
+    viewBox="0 0 48 48"
+    fill="currentColor"
+  >
+    <path d="M10.328 0L0.32 37.856L37.672 48L47.68 10.144L10.328 0ZM26.382 30.328L17.504 27.988L19.852 19.102L28.73 21.442L26.382 30.328Z" />
+  </svg>
+</button>
 
           <div className="w-px h-6 mx-2" style={{ backgroundColor: '#291f18' }}></div>
 
@@ -770,6 +1709,7 @@
     const [discordData, setDiscordData] = useState<LanyardData | null>(null)
     const [ultimaMusica, setUltimaMusica] = useState<SpotifyData | null>(null)
     const [igModalOpen, setIgModalOpen] = useState(false)
+    const [robloxModalOpen, setRobloxModalOpen] = useState(false)
     const [activeTab, setActiveTab] = useState<'home' | 'sobre' | 'lazer' | 'amigos'>('home')
     const [lazerTab, setLazerTab] = useState<'musica' | 'filmes'>('musica')
     const DISCORD_ID = '1314652031675531380'
@@ -976,6 +1916,11 @@
           <>
             <InstagramModal open={igModalOpen} onClose={() => setIgModalOpen(false)} />
 
+              <RobloxModal
+  open={robloxModalOpen}
+  onClose={() => setRobloxModalOpen(false)}
+/>
+
             <motion.div
     initial={{ y: 0, opacity: 1 }}
     animate={controls}
@@ -1040,6 +1985,7 @@
           getStatusColor={getStatusColor}
           musicaAtual={musicaAtual}
           setIgModalOpen={setIgModalOpen}
+          setRobloxModalOpen={setRobloxModalOpen}
         />
       </motion.div>
     )}
