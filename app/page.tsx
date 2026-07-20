@@ -427,7 +427,13 @@ setCommunitiesPage(0)
 }, [open])
 
 const createdAt = data?.created
-  ? new Date(data.created).toLocaleDateString('pt-BR')
+  ? new Intl.DateTimeFormat('pt-BR', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    })
+      .format(new Date(data.created))
+      .replace('.', '')
   : '---'
 
 const totalFriendPages = data?.totalFriendPages || 1
@@ -670,7 +676,7 @@ useEffect(() => {
 
                       <div className="mt-5 flex items-center gap-2 text-xs text-[#8d7d6e]">
                         <Calendar className="h-4 w-4" />
-                        <span>Entrou em {createdAt}</span>
+                        <span>{createdAt}</span>
                       </div>
                     </div>
 
