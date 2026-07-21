@@ -13,7 +13,7 @@
   import { inter } from '@/app/layout'
   import {
     User, Info, Gamepad, Users, Calendar, Music,
-    MessageCircle, Disc, Headphones, Instagram, Film, LockKeyhole, ChevronLeft, ChevronRight, Handbag, UserRoundCheck
+    MessageCircle, Disc, Headphones, Instagram, Film, LockKeyhole, ChevronLeft, ChevronRight, Handbag, UserRoundCheck, Lock, ExternalLink
   } from 'lucide-react'
 
   type SpotifyData = {
@@ -47,14 +47,16 @@
     spotify?: SpotifyData
   }
 
-  type InstagramData = {
-    username: string
-    avatar: string
-    posts: number
-    followers: number
-    following: number
-    bio: string
-  }
+  import { ReactNode } from 'react'
+
+type InstagramData = {
+  username: string
+  avatar: string
+  posts: number
+  followers: number
+  following: number
+  bio: ReactNode
+}
 
   type RobloxFriend = {
   id: number
@@ -173,7 +175,22 @@ type RobloxData = {
   posts: 0,
   followers: 21,
   following: 30,
-  bio: 'nothing less,\nnothing more',
+  bio: (
+  <>
+    nothing less,
+    {'\n'}
+    nothing more{' '}
+    <a
+      href="https://www.instagram.com/iisgfs/"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="font-medium text-[#b5825f] transition-colors hover:text-[#c89a78] hover:underline"
+    >
+      
+    </a>
+
+  </>
+),
 }
 
     useEffect(() => {
@@ -250,15 +267,22 @@ type RobloxData = {
 
     {/* Conta privada */}
     <div
-      className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-2 flex items-center justify-center"
-      style={{
-        backgroundColor: '#120c07',
-        borderColor: '#291f18',
-        color: '#574b40',
-      }}
-    >
-      <LockKeyhole className="w-3 h-3" strokeWidth={2.5} />
-    </div>
+  className="
+    absolute -bottom-1 -right-1
+    flex h-5 w-5 items-center justify-center
+    rounded-full border-2
+  "
+  style={{
+    backgroundColor: '#221812',
+    borderColor: '#120c07',
+    color: '#7d6d5f',
+  }}
+>
+  <Lock
+    className="h-3 w-3"
+    strokeWidth={2}
+  />
+</div>
   </div>
 
   <div className="flex-1 min-w-0">
@@ -270,15 +294,6 @@ type RobloxData = {
       @{igData.username}
     </p>
   </div>
-</div>
-
-{/* BIO — COLE EXATAMENTE AQUI */}
-<div className="flex items-start gap-3 mb-5">
-  <div className="w-1 self-stretch rounded-full bg-[#b5825f]" />
-
-  <p className="text-sm font-medium text-[#ede3d6] whitespace-pre-line leading-relaxed">
-    {igData.bio}
-  </p>
 </div>
 
 <div className="flex items-center justify-around py-4 mb-4 bg-[#221812]/30 rounded-lg border border-[#291f18]/50">
@@ -308,19 +323,58 @@ type RobloxData = {
   </div>
 </div>
 
-                      <a
-                        href={`https://www.instagram.com/${igData.username}`} 
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all border border-[#291f18] bg-[#22181280] shadow-xs hover:bg-[#221812] hover:text-[#ede3d6] h-10 rounded-md px-6 w-full text-[#8d7d6e]"
-                        style={{
-                          fontWeight: 500,
-                          WebkitFontSmoothing: 'antialiased'
-                        }}
-                      >
-                        <Instagram className="w-4 h-4" />
-                        Abrir Perfil
-                      </a>
+{/* BIO */}
+<div className="mb-4 border-l-2 border-[#b5825f]/50 pl-3">
+  <p className="whitespace-pre-line text-sm leading-relaxed text-[#ede3d6]/80">
+    {igData.bio}
+  </p>
+</div>
+
+{/* WEBSITE (opcional) */}
+<a
+  href="https://21scy.pw"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="
+    group mb-4 inline-flex items-center gap-2
+    text-sm font-medium
+    text-[#b5825f]
+    transition-colors
+    hover:text-[#c89a78]
+  "
+>
+  <ExternalLink
+    className="
+      h-4 w-4
+      transition-transform
+      group-hover:-translate-y-0.5
+      group-hover:translate-x-0.5
+    "
+  />
+
+  <span>21scy.pw</span>
+</a>
+
+<a
+  href={`https://www.instagram.com/${igData.username}`}
+  target="_blank"
+  rel="noopener noreferrer"
+  className="
+    inline-flex items-center justify-center gap-2
+    whitespace-nowrap text-sm font-medium
+    transition-all
+    border border-[#1c1410]
+    bg-[#140e09]
+    shadow-xs
+    hover:bg-[#17100b]
+    hover:text-[#ede3d6]
+    h-10 rounded-md px-6 w-full
+    text-[#8d7d6e]
+  "
+>
+  <Instagram className="w-4 h-4" />
+  Abrir Perfil
+</a>
                     </>
                   )}
                 </div>
