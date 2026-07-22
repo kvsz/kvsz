@@ -1289,6 +1289,751 @@ useEffect(() => {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`
   }
 
+  const NITRO_SINCE = new Date(2026, 2, 28, 4, 44, 0)
+
+type NitroLevel = {
+  name: string
+  image: string
+  unlockDays: number
+}
+
+const NITRO_LEVELS: NitroLevel[] = [
+  {
+    name: 'Bronze',
+    image: 'https://ik.imagekit.io/xys3wb0qo/badges/bronze.png',
+    unlockDays: 0,
+  },
+  {
+    name: 'Prata',
+    image: 'https://ik.imagekit.io/xys3wb0qo/badges/silver.png',
+    unlockDays: 0,
+  },
+  {
+    name: 'Ouro',
+    image: 'https://ik.imagekit.io/xys3wb0qo/badges/gold.png',
+    unlockDays: 365,
+  },
+  {
+    name: 'Platina',
+    image: 'https://ik.imagekit.io/xys3wb0qo/badges/platinum.png',
+    unlockDays: 730,
+  },
+  {
+    name: 'Diamante',
+    image: 'https://ik.imagekit.io/xys3wb0qo/badges/diamond.png',
+    unlockDays: 1095,
+  },
+  {
+    name: 'Esmeralda',
+    image: 'https://ik.imagekit.io/xys3wb0qo/badges/emerald.png',
+    unlockDays: 1460,
+  },
+  {
+    name: 'Rubi',
+    image: 'https://ik.imagekit.io/xys3wb0qo/badges/ruby.png',
+    unlockDays: 1825,
+  },
+  {
+    name: 'Opala',
+    image: 'https://ik.imagekit.io/xys3wb0qo/badges/opal.png',
+    unlockDays: 2190,
+  },
+]
+
+const DAY_IN_MS = 1000 * 60 * 60 * 24
+
+function getNitroElapsedDays(now = new Date()) {
+  return Math.max(
+    0,
+    Math.floor(
+      (now.getTime() - NITRO_SINCE.getTime()) /
+        DAY_IN_MS,
+    ),
+  )
+}
+
+function getNitroLevel(now = new Date()) {
+  const elapsedDays = getNitroElapsedDays(now)
+
+  let currentIndex = 0
+
+  NITRO_LEVELS.forEach((level, index) => {
+    if (elapsedDays >= level.unlockDays) {
+      currentIndex = index
+    }
+  })
+
+  const current = NITRO_LEVELS[currentIndex]
+  const next = NITRO_LEVELS[currentIndex + 1] || null
+
+  const currentStart = current.unlockDays
+  const nextStart = next?.unlockDays ?? currentStart
+
+  const levelDuration = Math.max(
+    1,
+    nextStart - currentStart,
+  )
+
+  const daysInCurrentLevel = Math.max(
+    0,
+    elapsedDays - currentStart,
+  )
+
+  const levelProgress = next
+    ? Math.min(
+        100,
+        Math.max(
+          0,
+          (daysInCurrentLevel / levelDuration) * 100,
+        ),
+      )
+    : 100
+
+  const daysRemaining = next
+    ? Math.max(0, nextStart - elapsedDays)
+    : 0
+
+  const totalProgress =
+    ((currentIndex + 1) / NITRO_LEVELS.length) * 100
+
+  return {
+    current,
+    next,
+    currentIndex,
+    elapsedDays,
+    levelProgress,
+    daysRemaining,
+    totalProgress,
+  }
+}
+
+function formatNitroStartDate() {
+  const date = NITRO_SINCE.toLocaleDateString(
+    'pt-BR',
+    {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    },
+  )
+
+  const time = NITRO_SINCE.toLocaleTimeString(
+    'pt-BR',
+    {
+      hour: '2-digit',
+      minute: '2-digit',
+    },
+  )
+
+  return `${date} às ${time}`
+}
+
+function getDetailedElapsedTime(
+  start: Date,
+  end = new Date(),
+) {
+  if (end.getTime() < start.getTime()) {
+    return 'ainda não iniciado'
+  }
+
+  let cursor = new Date(start)
+
+  let years = 0
+  let months = 0
+  let days = 0
+
+  while (true) {
+    const next = new Date(cursor)
+    next.setFullYear(next.getFullYear() + 1)
+
+    if (next <= end) {
+      cursor = next
+      years++
+    } else {
+      break
+    }
+  }
+
+  while (true) {
+    const next = new Date(cursor)
+    next.setMonth(next.getMonth() + 1)
+
+    if (next <= end) {
+      cursor = next
+      months++
+    } else {
+      break
+    }
+  }
+
+  while (true) {
+    const next = new Date(cursor)
+    next.setDate(next.getDate() + 1)
+
+    if (next <= end) {
+      cursor = next
+      days++
+    } else {
+      break
+    }
+  }
+
+  const remainingMs =
+    end.getTime() - cursor.getTime()
+
+  const hours = Math.floor(
+    remainingMs / (1000 * 60 * 60),
+  )
+
+  const minutes = Math.floor(
+    (remainingMs % (1000 * 60 * 60)) /
+      (1000 * 60),
+  )
+
+  const parts: string[] = []
+
+  if (years) {
+    parts.push(
+      `${years} ${years === 1 ? 'ano' : 'anos'}`,
+    )
+  }
+
+  if (months) {
+    parts.push(
+      `${months} ${months === 1 ? 'mês' : 'meses'}`,
+    )
+  }
+
+  if (days) {
+    parts.push(
+      `${days} ${days === 1 ? 'dia' : 'dias'}`,
+    )
+  }
+
+  parts.push(
+    `${hours} ${hours === 1 ? 'hora' : 'horas'}`,
+  )
+
+  parts.push(
+    `${minutes} ${
+      minutes === 1 ? 'minuto' : 'minutos'
+    }`,
+  )
+
+  return parts.join(', ')
+}
+
+function NitroModal({
+  open,
+  onClose,
+}: {
+  open: boolean
+  onClose: () => void
+}) {
+  const nitro = getNitroLevel()
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={onClose}
+            className="fixed inset-0 z-[80] bg-black/60"
+          />
+
+          <motion.div
+            initial={{
+              opacity: 0,
+              scale: 0.95,
+              y: 15,
+            }}
+            animate={{
+              opacity: 1,
+              scale: 1,
+              y: 0,
+            }}
+            exit={{
+              opacity: 0,
+              scale: 0.95,
+              y: 15,
+            }}
+            transition={{
+              duration: 0.2,
+              ease: 'easeOut',
+            }}
+            className="
+              fixed left-1/2 top-1/2 z-[90]
+              w-[min(540px,94vw)]
+              -translate-x-1/2
+              -translate-y-1/2
+            "
+          >
+            <div
+              className="
+                relative max-h-[90vh] overflow-y-auto
+                rounded-xl border border-[#291f18]
+                bg-[#120c07]/95 p-6
+                shadow-2xl backdrop-blur-2xl
+                modal-scrollbar
+              "
+            >
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Fechar progresso Nitro"
+                className="
+                  absolute right-4 top-4 z-20
+                  flex h-8 w-8 items-center
+                  justify-center rounded-full
+                  bg-[#221812]/70
+                  text-xl text-[#8d7d6e]
+                  transition-colors
+                  hover:text-[#ede3d6]
+                "
+              >
+                ×
+              </button>
+
+              <div className="mb-6 text-center">
+                <h3
+                  className="
+                    mb-1 text-2xl font-black
+                    text-[#ede3d6]
+                  "
+                >
+                  ✨ Nitro Progress
+                </h3>
+
+                <p className="text-sm text-[#8d7d6e]">
+                  {nitro.currentIndex + 1} de{' '}
+                  {NITRO_LEVELS.length} níveis
+                  desbloqueados
+                </p>
+
+                <p className="mt-1 text-xs text-[#574b40]">
+                  Assinante desde{' '}
+                  {formatNitroStartDate()}
+                </p>
+              </div>
+
+              <div className="mb-6 grid grid-cols-2 gap-4">
+                {/* Nível atual */}
+                <motion.div
+                  initial={{
+                    opacity: 0,
+                    x: -20,
+                  }}
+                  animate={{
+                    opacity: 1,
+                    x: 0,
+                  }}
+                  transition={{ delay: 0.08 }}
+                  className="
+                    relative rounded-2xl border-2
+                    border-[#b5825f]/40
+                    bg-gradient-to-br
+                    from-[#b5825f]/20
+                    to-[#b5825f]/5
+                    p-4
+                  "
+                >
+                  <span
+                    className="
+                      absolute right-2 top-2
+                      rounded-full bg-[#b5825f]
+                      px-2 py-0 text-[10px]
+                      font-bold text-[#120c07]
+                    "
+                  >
+                    ATUAL
+                  </span>
+
+                  <div
+                    className="
+                      flex flex-col items-center
+                      gap-3 pt-4
+                    "
+                  >
+                    <div className="relative">
+                      <motion.img
+                        src={nitro.current.image}
+                        alt={nitro.current.name}
+                        width={80}
+                        height={80}
+                        animate={{
+                          rotate: [0, 5, 0, -5, 0],
+                        }}
+                        transition={{
+                          duration: 3,
+                          repeat: Infinity,
+                        }}
+                        className="
+                          relative z-10 h-20 w-20
+                          object-contain drop-shadow-xl
+                        "
+                      />
+
+                      <motion.div
+                        animate={{
+                          opacity: [0.3, 0.6, 0.3],
+                          scale: [1, 1.2, 1],
+                        }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                        }}
+                        className="
+                          absolute -inset-2 -z-0
+                          rounded-full bg-[#b5825f]/20
+                          blur-xl
+                        "
+                      />
+                    </div>
+
+                    <div className="text-center">
+                      <p
+                        className="
+                          text-lg font-bold
+                          text-[#ede3d6]
+                        "
+                      >
+                        {nitro.current.name}
+                      </p>
+
+                      <p className="text-xs text-[#8d7d6e]">
+                        Nível {nitro.currentIndex + 1}
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* Próximo nível */}
+                <motion.div
+                  initial={{
+                    opacity: 0,
+                    x: 20,
+                  }}
+                  animate={{
+                    opacity: 1,
+                    x: 0,
+                  }}
+                  transition={{ delay: 0.12 }}
+                  className="
+                    relative rounded-2xl
+                    border-2 border-dashed
+                    border-[#291f18]
+                    bg-[#221812]/50 p-4
+                  "
+                >
+                  <span
+                    className="
+                      absolute right-2 top-2
+                      rounded-full border
+                      border-[#291f18]
+                      bg-[#221812]
+                      px-2 py-0 text-[10px]
+                      font-bold text-[#ede3d6]
+                    "
+                  >
+                    PRÓXIMO
+                  </span>
+
+                  <div
+                    className="
+                      flex flex-col items-center
+                      gap-3 pt-4
+                    "
+                  >
+                    {nitro.next ? (
+                      <>
+                        <img
+                          src={nitro.next.image}
+                          alt={nitro.next.name}
+                          width={80}
+                          height={80}
+                          className="
+                            h-20 w-20 object-contain
+                            opacity-80
+                          "
+                        />
+
+                        <div className="text-center">
+                          <p
+                            className="
+                              text-lg font-bold
+                              text-[#ede3d6]
+                            "
+                          >
+                            {nitro.next.name}
+                          </p>
+
+                          <p className="text-xs text-[#8d7d6e]">
+                            Nível{' '}
+                            {nitro.currentIndex + 2}
+                          </p>
+                        </div>
+
+                        <div
+                          className="
+                            mt-1 w-full border-t
+                            border-[#291f18] pt-3
+                          "
+                        >
+                          <div className="mb-2 text-center">
+                            <strong
+                              className="
+                                text-2xl font-black
+                                text-[#b5825f]
+                              "
+                            >
+                              {nitro.daysRemaining}
+                            </strong>
+
+                            <span className="ml-1 text-xs text-[#8d7d6e]">
+                              dias
+                            </span>
+                          </div>
+
+                          <div
+                            className="
+                              h-1.5 overflow-hidden
+                              rounded-full bg-[#221812]
+                            "
+                          >
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{
+                                width: `${nitro.levelProgress}%`,
+                              }}
+                              transition={{
+                                duration: 1.5,
+                                ease: 'easeOut',
+                              }}
+                              className="
+                                h-full rounded-full
+                                bg-[#b5825f]
+                              "
+                            />
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <div
+                        className="
+                          flex h-full flex-col
+                          items-center justify-center
+                          text-center
+                        "
+                      >
+                        <p className="font-bold text-[#ede3d6]">
+                          Nível máximo
+                        </p>
+
+                        <p className="mt-1 text-xs text-[#8d7d6e]">
+                          Todos os níveis foram
+                          desbloqueados.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              </div>
+
+              {/* Progresso total */}
+              <div className="mb-6">
+                <div
+                  className="
+                    mb-2 flex items-center
+                    justify-between text-sm
+                  "
+                >
+                  <span className="font-medium text-[#8d7d6e]">
+                    Progresso Total
+                  </span>
+
+                  <span
+                    className="
+                      text-lg font-black
+                      text-[#b5825f]
+                    "
+                  >
+                    {Math.round(nitro.totalProgress)}%
+                  </span>
+                </div>
+
+                <div
+                  className="
+                    relative h-3 overflow-hidden
+                    rounded-full bg-[#221812]
+                  "
+                >
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{
+                      width: `${nitro.totalProgress}%`,
+                    }}
+                    transition={{
+                      duration: 2,
+                      ease: 'easeOut',
+                    }}
+                    className="
+                      absolute inset-y-0 left-0
+                      rounded-full
+                      bg-gradient-to-r
+                      from-[#9d6b4b]
+                      via-[#b5825f]
+                      to-[#c99a78]
+                    "
+                  />
+                </div>
+              </div>
+
+              {/* Todos os níveis */}
+              <div
+                className="
+                  rounded-xl border
+                  border-[#291f18]/50
+                  bg-[#221812]/30 p-4
+                "
+              >
+                <p
+                  className="
+                    mb-3 text-xs font-medium
+                    text-[#8d7d6e]
+                  "
+                >
+                  Todos os Níveis
+                </p>
+
+                <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
+                  {NITRO_LEVELS.map(
+                    (level, index) => {
+                      const isUnlocked =
+                        index <= nitro.currentIndex
+
+                      const isCurrent =
+                        index === nitro.currentIndex
+
+                      return (
+                        <motion.div
+                          key={level.name}
+                          initial={{
+                            opacity: 0,
+                            scale: 0,
+                          }}
+                          animate={{
+                            opacity: 1,
+                            scale: 1,
+                          }}
+                          transition={{
+                            delay: index * 0.05,
+                            type: 'spring',
+                          }}
+                          className="group relative"
+                        >
+                          <div
+                            className={`
+                              relative aspect-square
+                              rounded-lg border-2 p-1.5
+                              transition-all
+                              ${
+                                isCurrent
+                                  ? `
+                                    border-[#b5825f]
+                                    bg-[#b5825f]/20
+                                    shadow-lg
+                                    shadow-[#b5825f]/20
+                                  `
+                                  : isUnlocked
+                                    ? `
+                                      border-emerald-500/50
+                                      bg-emerald-500/10
+                                    `
+                                    : `
+                                      border-[#291f18]/30
+                                      bg-[#120c07]/50
+                                    `
+                              }
+                            `}
+                          >
+                            <img
+                              src={level.image}
+                              alt={level.name}
+                              className={`
+                                h-full w-full
+                                object-contain
+                                ${
+                                  isUnlocked
+                                    ? ''
+                                    : 'opacity-30 blur-[1px]'
+                                }
+                              `}
+                            />
+
+                            {isCurrent && (
+                              <motion.div
+                                animate={{
+                                  scale: [1, 1.3, 1],
+                                }}
+                                transition={{
+                                  duration: 2,
+                                  repeat: Infinity,
+                                }}
+                                className="
+                                  absolute -right-1 -top-1
+                                  h-3 w-3 rounded-full
+                                  border-2 border-[#120c07]
+                                  bg-[#b5825f]
+                                "
+                              />
+                            )}
+
+                            {isUnlocked && !isCurrent && (
+                              <div
+                                className="
+                                  absolute -right-1 -top-1
+                                  h-3 w-3 rounded-full
+                                  border-2 border-[#120c07]
+                                  bg-emerald-500
+                                "
+                              />
+                            )}
+                          </div>
+
+                          <div
+                            className="
+                              pointer-events-none
+                              absolute -top-9 left-1/2
+                              z-20 -translate-x-1/2
+                              whitespace-nowrap rounded-lg
+                              border border-[#291f18]
+                              bg-[#120c07] px-2 py-1
+                              text-[10px] font-medium
+                              text-[#ede3d6] opacity-0
+                              shadow-xl transition-opacity
+                              group-hover:opacity-100
+                            "
+                          >
+                            {level.name}
+                          </div>
+                        </motion.div>
+                      )
+                    },
+                  )}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  )
+}
+
   function HomeContent({
   cardRef,
   handleMouseMove,
@@ -1304,6 +2049,12 @@ useEffect(() => {
 }: any) {
     const spotify = useSpotify() // <- USA O HOOK AGORA
     const [profileModalOpen, setProfileModalOpen] = useState(false)
+
+    const [nitroModalOpen, setNitroModalOpen] =
+  useState(false)
+
+const [nitroTooltipOpen, setNitroTooltipOpen] =
+  useState(false)
     
     const isPlaying = spotify.isPlaying
     const [currentProgress, setCurrentProgress] = useState(0)
@@ -1371,7 +2122,7 @@ useEffect(() => {
               stiffness: 400,
               damping: 21
             }}
-            className="relative rounded-2xl border overflow-hidden"
+            className="relative rounded-2xl border overflow-visible"
             style={{
               width: '640px',
               maxWidth: 'none',
@@ -1385,7 +2136,7 @@ useEffect(() => {
               willChange: 'transform',
             }}
           >
-            <div className="h-28 relative overflow-hidden">
+            <div className="relative h-28 overflow-hidden rounded-t-2xl">
               <div className="h-full bg-gradient-to-br from-[#b5825f66] via-[#a15d3e4D] to-[#221812]">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent)]"></div>
               </div>
@@ -1429,6 +2180,9 @@ useEffect(() => {
           duration: 0.5,
           ease: 'easeOut',
         }}
+
+        
+        
       />
     </motion.div>
 
@@ -1449,26 +2203,157 @@ useEffect(() => {
       }}
     />
   </motion.div>
-                {/*BADGES DO CARD PRINCIPAL 
-                <div className="flex items-center gap-1.5 mb-8 rounded-lg px-3 py-2 max-w-[60%] z-50 overflow-x-auto"
-                    style={{ backgroundColor: '#221812CC' }}>
-                  <button data-state="closed" data-slot="tooltip-trigger">
-                    <div className="relative flex-shrink-0 cursor-pointer">
-                      <div className="absolute inset-0 bg-primary/20 rounded-full blur-md opacity-0 hover:opacity-100 transition-opacity"></div>
-                      <img alt="Nitro" loading="lazy" width="20" height="20" decoding="async" className="object-contain relative z-10" src="https://cdn.discordapp.com/badge-icons/2ba85e8026a8614b640c2837bcdfe21b.png" />
-                    </div>
-                  </button>
-                  <div className="relative flex-shrink-0" data-state="closed" data-slot="tooltip-trigger">
-                    <div className="absolute inset-0 bg-primary/20 rounded-full blur-md opacity-0 hover:opacity-100 transition-opacity"></div>
-                    <img alt="Quests" loading="lazy" width="20" height="20" decoding="async" className="object-contain relative z-10" src="https://cdn.discordapp.com/badge-icons/7d9ae358c8c5e118768335dbe68b4fb8.png" />
-                  </div>
-                  <button data-state="closed" data-slot="tooltip-trigger">
-                    <div className="relative flex-shrink-0 cursor-pointer">
-                      <div className="absolute inset-0 bg-primary/20 rounded-full blur-md opacity-0 hover:opacity-100 transition-opacity"></div>
-                      <img alt="Last Meadow Online" loading="lazy" width="20" height="20" decoding="async" className="object-contain relative z-10" src="https://cdn.discordapp.com/badge-icons/ca105ad9cfc8580c765101d17bbb2323.png" />
-                    </div>
-                  </button>
-                </div>*/}
+                
+                <div
+  className="
+    relative z-50
+    flex items-center gap-1.5
+    rounded-lg bg-[#221812]/80
+    px-3 py-2
+  "
+  style={{
+    transform: 'translateZ(0px)',
+    transition: 'transform 0.3s ease-out',
+  }}
+>
+  <motion.button
+    type="button"
+    aria-label="Abrir progresso do Nitro"
+    initial={{
+      scale: 0,
+    }}
+    animate={{
+      scale: 1,
+    }}
+    transition={{
+      type: 'spring',
+      stiffness: 300,
+      damping: 18,
+    }}
+    whileHover={{
+      rotate: 360,
+      scale: 1.3,
+      transition: {
+        duration: 0.3,
+      },
+    }}
+    whileTap={{
+      scale: 0.9,
+    }}
+    onMouseEnter={() =>
+      setNitroTooltipOpen(true)
+    }
+    onMouseLeave={() =>
+      setNitroTooltipOpen(false)
+    }
+    onFocus={() =>
+      setNitroTooltipOpen(true)
+    }
+    onBlur={() =>
+      setNitroTooltipOpen(false)
+    }
+    onClick={() => {
+      setNitroTooltipOpen(false)
+      setNitroModalOpen(true)
+    }}
+    className="
+      group relative flex-shrink-0
+      cursor-pointer border-0
+      bg-transparent p-0
+    "
+  >
+    <div
+      className="
+        absolute inset-0 rounded-full
+        bg-[#b5825f]/20 blur-md
+        opacity-0 transition-opacity
+        group-hover:opacity-100
+      "
+    />
+
+    <img
+      src="https://ik.imagekit.io/xys3wb0qo/badges/silver.png"
+      alt="Nitro Prata"
+      width={20}
+      height={20}
+      draggable={false}
+      className="
+        relative z-10 h-5 w-5
+        select-none object-contain
+      "
+    />
+  </motion.button>
+
+  <AnimatePresence>
+    {nitroTooltipOpen && (
+      <motion.div
+        initial={{
+          opacity: 0,
+          y: 5,
+          scale: 0.96,
+        }}
+        animate={{
+          opacity: 1,
+          y: 0,
+          scale: 1,
+        }}
+        exit={{
+          opacity: 0,
+          y: 5,
+          scale: 0.96,
+        }}
+        transition={{
+          duration: 0.15,
+        }}
+        className="
+          pointer-events-none
+          absolute bottom-full left-1/2
+          z-[100] mb-3
+          -translate-x-1/2
+          whitespace-nowrap
+          rounded-xl border
+          border-[#291f18]
+          bg-[#120c07]
+          px-3 py-2
+          text-center shadow-2xl
+        "
+      >
+        <p
+          className="
+            text-xs font-semibold
+            text-[#ede3d6]
+          "
+        >
+          {formatNitroStartDate()}
+        </p>
+
+        <p
+          className="
+            mt-0.5 text-[11px]
+            text-[#8d7d6e]
+          "
+        >
+          Há{' '}
+          {getDetailedElapsedTime(
+            NITRO_SINCE,
+          )}
+        </p>
+
+        <div
+          className="
+            absolute left-1/2 top-full
+            -translate-x-1/2
+            border-x-[6px]
+            border-t-[6px]
+            border-x-transparent
+            border-t-[#291f18]
+          "
+        />
+      </motion.div>
+    )}
+  </AnimatePresence>
+  
+</div>
               </div>
               
 
@@ -1795,6 +2680,10 @@ useEffect(() => {
       </>
     )}
   </AnimatePresence>
+  <NitroModal
+  open={nitroModalOpen}
+  onClose={() => setNitroModalOpen(false)}
+/>
       </div>
     )
   }
