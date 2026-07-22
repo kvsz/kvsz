@@ -184,9 +184,15 @@ type RobloxData = {
       href="https://www.instagram.com/iisgfs/"
       target="_blank"
       rel="noopener noreferrer"
-      className="font-medium text-[#b5825f] transition-colors hover:text-[#c89a78] hover:underline"
+      className="
+  font-medium
+  text-[#b5825f]
+  transition-colors
+  hover:text-[#b5825f]/80
+  hover:underline
+"
     >
-      
+      @iisgfs
     </a>
 
   </>
@@ -339,8 +345,9 @@ type RobloxData = {
     group mb-4 inline-flex items-center gap-2
     text-sm font-medium
     text-[#b5825f]
-    transition-colors
-    hover:text-[#c89a78]
+    transition-colors duration-200
+    hover:opacity-80
+    
   "
 >
   <ExternalLink
@@ -487,7 +494,7 @@ const createdAt = data?.created
       year: 'numeric',
     })
       .format(new Date(data.created))
-      .replace('.', '')
+      
   : '---'
 
 const totalFriendPages = data?.totalFriendPages || 1
@@ -704,38 +711,67 @@ useEffect(() => {
               ) : data ? (
                 <div className="grid h-full grid-cols-[330px_minmax(0,1fr)]">
                   {/* Coluna esquerda */}
-                  <aside className="flex h-full flex-col border-r border-[#291f18] p-6 pt-14">
-                    <div className="flex h-72 items-center justify-center overflow-hidden rounded-xl bg-[#1a110b]">
-                      <img
-                        src={data.avatar}
-                        alt={`Avatar de ${data.displayName}`}
-                        className="h-full w-full object-contain"
-                      />
-                    </div>
+                  <aside
+  className="
+    flex h-full flex-col
+    overflow-hidden border-r border-[#291f18]
+    p-6 pt-14
+  "
+>
+                    <div className="relative flex-shrink-0">
+  <div
+    className="
+      flex w-full aspect-square
+      items-end justify-center
+      overflow-hidden rounded-lg
+      bg-gradient-to-br
+      from-[#221812]/50 to-[#221812]
+    "
+  >
+    <img
+      src={data.avatar}
+      alt={`Avatar de ${data.displayName}`}
+      loading="lazy"
+      decoding="async"
+      draggable={false}
+      className="
+        h-full w-full
+        select-none object-contain
+      "
+    />
+  </div>
+</div>
 
-                    <div className="mt-6">
-                      <h2 className="text-3xl font-black text-[#ede3d6]">
-                        {data.displayName}
-                      </h2>
+                    <div className="mt-6 space-y-3">
+  <div>
+    <h2 className="text-2xl font-bold text-[#ede3d6]">
+      {data.displayName}
+    </h2>
 
-                      <p className="mt-1 text-sm text-[#8d7d6e]">
-                        @{data.name}
-                      </p>
+    <p className="mt-1 text-xs text-[#8d7d6e]">
+      @{data.name}
+    </p>
+  </div>
 
-                      {data.description && (
-                        <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-[#a99a8c]">
-                          {data.description}
-                        </p>
-                      )}
+  {data.description && (
+    <p
+      className="
+        line-clamp-2 text-sm
+        leading-relaxed text-[#8d7d6e]
+      "
+    >
+      {data.description}
+    </p>
+  )}
 
-                      <div className="mt-5 flex items-center gap-2 text-xs text-[#8d7d6e]">
-                        <Calendar className="h-4 w-4" />
-                        <span>{createdAt}</span>
-                      </div>
-                    </div>
+  <div className="flex items-center gap-1.5 text-xs text-[#8d7d6e]">
+    <Calendar className="h-3 w-3" />
+    <span>{createdAt}</span>
+  </div>
+</div>
 
-                    <div className="mt-6 grid grid-cols-3 gap-2">
-                      <div className="rounded-xl border border-[#291f18] bg-[#1a110b] p-3 text-center">
+                    <div className="mt-4 grid grid-cols-3 gap-2">
+                      <div className="rounded-lg border border-[#291f18]/50 bg-[#221812]/40 p-3 text-center">
                         <strong className="block text-xl text-[#ede3d6]">
                           {data.friends.toLocaleString('pt-BR')}
                         </strong>
@@ -744,7 +780,7 @@ useEffect(() => {
                         </span>
                       </div>
 
-                      <div className="rounded-xl border border-[#291f18] bg-[#1a110b] p-3 text-center">
+                      <div className="rounded-lg border border-[#291f18]/50 bg-[#221812]/40 p-3 text-center">
                         <strong className="block text-xl text-[#ede3d6]">
                           {data.followers.toLocaleString('pt-BR')}
                         </strong>
@@ -753,7 +789,7 @@ useEffect(() => {
                         </span>
                       </div>
 
-                      <div className="rounded-xl border border-[#291f18] bg-[#1a110b] p-3 text-center">
+                      <div className="rounded-lg border border-[#291f18]/50 bg-[#221812]/40 p-3 text-center">
                         <strong className="block text-xl text-[#ede3d6]">
                           {data.following.toLocaleString('pt-BR')}
                         </strong>
@@ -877,57 +913,59 @@ useEffect(() => {
       transition={{
         duration: 0.18,
       }}
-      className="grid grid-cols-7 gap-3"
+      className="grid grid-cols-6 gap-3"
     >
       {visibleWearingItems.map((item) => (
         <a
-          key={item.id}
-          href={`https://www.roblox.com/catalog/${item.id}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="
-            group min-w-[62px] overflow-hidden rounded-xl
-            border border-[#291f18] bg-[#1a110b]
-            transition-all hover:-translate-y-1
-            hover:border-[#b5825f]/50
-          "
-        >
-          <div
-            className="
-              flex aspect-square items-center
-              justify-center overflow-hidden
-              bg-[#221812]
-            "
-          >
-            {item.image ? (
-              <img
-                src={item.image}
-                alt={item.name}
-                loading="eager"
-                decoding="async"
-                draggable={false}
-                className="
-                  h-full w-full select-none object-contain
-                  transition-transform group-hover:scale-105
-                "
-              />
-            ) : (
-              <div className="h-full w-full animate-pulse bg-[#221812]" />
-            )}
-          </div>
+  key={item.id}
+  href={`https://www.roblox.com/catalog/${item.id}`}
+  target="_blank"
+  rel="noopener noreferrer"
+  className="
+    group relative rounded-lg
+    border border-[#291f18]/70
+    bg-[#221812]/40 p-3
+    transition-all duration-200
+    hover:border-[#b5825f]/50
+  "
+>
+  <div
+    className="
+      relative mb-2 aspect-square
+      overflow-hidden rounded-md
+      bg-[#221812]/70
+    "
+  >
+    {item.image ? (
+      <img
+        src={item.image}
+        alt={item.name}
+        loading="lazy"
+        decoding="async"
+        draggable={false}
+        className="
+          absolute inset-0
+          h-full w-full
+          select-none object-cover
+        "
+      />
+    ) : (
+      <div className="h-full w-full animate-pulse bg-[#221812]" />
+    )}
+  </div>
 
-          <div className="p-2.5">
-            <p
-              title={item.name}
-              className="
-                truncate text-xs font-medium
-                text-[#ede3d6]
-              "
-            >
-              {item.name}
-            </p>
-          </div>
-        </a>
+  <p
+    title={item.name}
+    className="
+      truncate text-center text-xs
+      font-medium text-[#8d7d6e]
+      transition-colors duration-200
+      group-hover:text-[#ede3d6]
+    "
+  >
+    {item.name}
+  </p>
+</a>
       ))}
     </motion.div>
   </AnimatePresence>
@@ -1878,7 +1916,7 @@ useEffect(() => {
 
     const getStatusColor = (status: string) => {
       switch(status) {
-        case 'online': return '#45ba50'
+        case 'online': return '#00BC7D'
         case 'idle': return '#FE9A00'
         case 'dnd': return '#FF2056'
         default: return '#71717B'
