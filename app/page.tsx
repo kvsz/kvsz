@@ -10,7 +10,7 @@
   import { useSpotify } from '@/hooks/useSpotify'
   import MusicTab from './components/MusicTab'
   import MoviesTab from './components/MoviesTab'
-  import { inter } from '@/app/layout'
+  import { inter } from '@/app/fonts'
   import {
     User, Info, Gamepad, Users, Calendar, Music,
     MessageCircle, Disc, Headphones, Instagram, Film, LockKeyhole, ChevronLeft, ChevronRight, Handbag, UserRoundCheck, Lock, ExternalLink, TriangleAlert
@@ -2956,22 +2956,26 @@ const [nitroTooltipOpen, setNitroTooltipOpen] =
           />
 
           <motion.p
-            animate={
+  animate={
     revealing
       ? { opacity: 0 }
-      : {
-          color: ['#57504a', '#aca298', '#57504a'],
-        }
+      : { opacity: [0.82, 1, 0.82] }
   }
-            transition={{ duration: 2.5, ease: 'easeInOut', repeat: Infinity }}
-            className="relative text-2xl font-thin tracking-[0.3em] text-foreground/90 select-none uppercase antialiased"
-            style={{
-    WebkitFontSmoothing: 'antialiased',
-    MozOsxFontSmoothing: 'grayscale',
+  transition={{
+    duration: 2.5,
+    ease: 'easeInOut',
+    repeat: Infinity,
   }}
-          >
-            clique para revelar
-          </motion.p>
+  className={`
+    ${inter.className}
+    relative select-none
+    text-2xl font-thin
+    uppercase tracking-[0.3em]
+    text-[#aca298]
+  `}
+>
+  clique para revelar
+</motion.p>
         </motion.div>
       </motion.div>
     )}
