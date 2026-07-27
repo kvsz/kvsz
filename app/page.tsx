@@ -2472,22 +2472,41 @@ const [nitroTooltipOpen, setNitroTooltipOpen] =
                         </p>
 
                         {isPlaying && duration > 0 ? (
-                          <div className="mt-2 space-y-0.5">
-                            <div className="h-1 rounded-full overflow-hidden" style={{ backgroundColor: '#8d7d6e33' }}>
-                              <div
-                                className="h-full rounded-full"
-                                style={{
-                                  backgroundColor: '#00BC7D',
-                                  width: `${progressPercent}%`,
-                                  transition: 'width 1000ms linear'
-                                }}
-                              />
-                            </div>
-                            <div className="flex justify-between font-mono text-[10px]" style={{ color: '#8d7d6e' }}>
-                              <span>{formatTime(currentProgress)}</span>
-                              <span>{formatTime(duration)}</span>
-                            </div>
-                          </div>
+                          <div className="mt-2 space-y-1">
+  {/* Barra de progresso */}
+  <div
+    className="
+      relative h-1 overflow-hidden rounded-full
+      border border-[#291f18]/30
+      bg-[#221812]/50
+    "
+  >
+    <div
+      className="
+        h-full rounded-full
+        bg-gradient-to-r
+        from-emerald-500
+        to-emerald-400
+      "
+      style={{
+        width: `${progressPercent}%`,
+        transition: 'width 1000ms linear',
+      }}
+    />
+  </div>
+
+  {/* Tempo atual e duração */}
+  <div
+    className="
+      flex items-center justify-between
+      font-mono text-[10px]
+      text-[#8d7d6e]
+    "
+  >
+    <span>{formatTime(currentProgress)}</span>
+    <span>{formatTime(duration)}</span>
+  </div>
+</div>
                         ) : (
                           <p className="text-xs mt-1" style={{ color: '#8d7d6e' }}>
                             {spotify.fallback ? 'Última música ouvida' : 'Tocando agora'}
