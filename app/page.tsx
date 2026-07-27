@@ -13,7 +13,7 @@
   import { inter } from '@/app/layout'
   import {
     User, Info, Gamepad, Users, Calendar, Music,
-    MessageCircle, Disc, Headphones, Instagram, Film, LockKeyhole, ChevronLeft, ChevronRight, Handbag, UserRoundCheck, Lock, ExternalLink
+    MessageCircle, Disc, Headphones, Instagram, Film, LockKeyhole, ChevronLeft, ChevronRight, Handbag, UserRoundCheck, Lock, ExternalLink, TriangleAlert
   } from 'lucide-react'
 
   type SpotifyData = {
@@ -429,6 +429,9 @@ type RobloxData = {
 const [loading, setLoading] = useState(true)
 const [data, setData] = useState<RobloxData | null>(null)
 
+const [error, setError] = useState(false)
+const [retryCount, setRetryCount] = useState(0)
+
 const [friendsPage, setFriendsPage] = useState(0)
 
 const [wearingPage, setWearingPage] = useState(0)
@@ -453,9 +456,12 @@ setCommunitiesPage(0)
   setFriendsPages({})
   setFriendsLoading(false)
   setData(null)
+  setError(false)
 
   const fetchRobloxData = async () => {
     setLoading(true)
+
+    
 
     try {
       const response = await fetch(
@@ -471,21 +477,23 @@ setCommunitiesPage(0)
       const json: RobloxData = await response.json()
 
       setData(json)
+      setError(false)
 
       // Salva a primeira página no cache.
       setFriendsPages({
         0: json.friendsList,
       })
     } catch (error) {
-      console.error('Erro ao carregar Roblox:', error)
-      setData(null)
+  console.error('Erro ao carregar Roblox:', error)
+  setData(null)
+  setError(true)
     } finally {
       setLoading(false)
     }
   }
 
   fetchRobloxData()
-}, [open])
+}, [open, retryCount])
 
 const createdAt = data?.created
   ? new Intl.DateTimeFormat('pt-BR', {
@@ -1260,20 +1268,71 @@ useEffect(() => {
                     </div>
                   </section>
                 </div>
-              ) : (
-                <div className="flex h-full flex-col items-center justify-center">
-                  <p className="text-[#ede3d6]">
-                    Não foi possível carregar o perfil.
-                  </p>
+              ) : error ? (
+  <div
+    className="
+      flex h-full flex-col
+      items-center justify-center
+      px-6 text-center
+    "
+  >
+    {/* Ícone de erro */}
+    <div
+      className="
+        mb-5 flex h-14 w-14
+        items-center justify-center
+        rounded-full
+        bg-red-500/10
+      "
+    >
+      <TriangleAlert
+        className="h-7 w-7 text-red-500"
+        strokeWidth={2}
+      />
+    </div>
 
-                  <button
-                    onClick={onClose}
-                    className="mt-4 rounded-lg bg-[#221812] px-5 py-2 text-sm text-[#8d7d6e]"
-                  >
-                    Fechar
-                  </button>
-                </div>
-              )}
+    {/* Título */}
+    <h2
+      className="
+        text-lg font-bold
+        text-[#ede3d6]
+      "
+    >
+      Erro ao carregar perfil
+    </h2>
+
+    {/* Descrição */}
+    <p
+      className="
+        mt-2 max-w-[430px]
+        text-sm leading-relaxed
+        text-[#8d7d6e]
+      "
+    >
+      Não foi possível conectar à API do Roblox. Verifique sua
+      conexão ou tente novamente mais tarde.
+    </p>
+
+    {/* Botão */}
+    <button
+      type="button"
+      onClick={() => setRetryCount((current) => current + 1)}
+      className="
+        mt-5 inline-flex h-10
+        items-center justify-center
+        rounded-lg
+        bg-[#b5825f]
+        px-5 text-sm font-medium
+        text-[#120c07]
+        transition-all duration-200
+        hover:bg-[#c28e69]
+        active:scale-[0.97]
+      "
+    >
+      Tentar novamente
+    </button>
+  </div>
+) : null}
             </div>
           </motion.div>
         </>
