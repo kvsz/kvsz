@@ -9,6 +9,8 @@
   import AnimatedBackground from './AnimatedBackground'
   import { useSpotify } from '@/hooks/useSpotify'
   import MusicTab from './components/MusicTab'
+  import SyncedMusicPlayer from './components/SyncedMusicPlayer'
+  import { Toaster } from 'sonner'
   import MoviesTab from './components/MoviesTab'
   import { inter } from '@/app/fonts'
   import {
@@ -2665,11 +2667,6 @@ const [nitroTooltipOpen, setNitroTooltipOpen] =
           </a>
         </motion.div>
 
-        <button className="fixed bottom-6 right-6 p-3 rounded-xl"
-                style={{ backgroundColor: '#b5825f', color: '#080503' }}>
-          <Music size={18} />
-        </button>
-
         <AnimatePresence>
     {profileModalOpen && (
       <>
@@ -2906,6 +2903,7 @@ const [nitroTooltipOpen, setNitroTooltipOpen] =
     const musicaAtual = discordData?.listening_to_spotify? discordData.spotify : ultimaMusica
 
     return (
+      
       <main className="min-h-screen overflow-x-hidden antialiased"
             style={{
               backgroundColor: '#080503',
@@ -3125,8 +3123,8 @@ const [nitroTooltipOpen, setNitroTooltipOpen] =
       </motion.div>
 
       <div className={lazerTab === 'musica' ? 'block' : 'hidden'}>
-    <MusicTab />
-  </div>
+  <MusicTab />
+</div>
 
   <div className={lazerTab === 'filmes' ? 'block' : 'hidden'}>
     <MoviesTab />
@@ -3134,7 +3132,7 @@ const [nitroTooltipOpen, setNitroTooltipOpen] =
     </motion.div>
   )}
 
-              {activeTab === 'amigos' && (
+                            {activeTab === 'amigos' && (
                 <motion.div
                   key="amigos"
                   initial={{ opacity: 0, y: 20 }}
@@ -3142,8 +3140,17 @@ const [nitroTooltipOpen, setNitroTooltipOpen] =
                   transition={{ duration: 0.3 }}
                   className="relative z-10 min-h-screen px-6 pt-32 pb-20 max-w-[1300px] mx-auto"
                 >
-                  <h1 className="text-4xl font-bold mb-6" style={{ color: '#ede3d6' }}>Meus Amigos</h1>
-                  <div className="space-y-4" style={{ color: '#8d7d6e' }}>
+                  <h1
+                    className="text-4xl font-bold mb-6"
+                    style={{ color: '#ede3d6' }}
+                  >
+                    Meus Amigos
+                  </h1>
+
+                  <div
+                    className="space-y-4"
+                    style={{ color: '#8d7d6e' }}
+                  >
                     <p>Reforming...</p>
                   </div>
                 </motion.div>
@@ -3151,6 +3158,24 @@ const [nitroTooltipOpen, setNitroTooltipOpen] =
             </>
           </>
         )}
+        <Toaster
+  position="top-right"
+  richColors={false}
+  closeButton={false}
+  toastOptions={{
+    className:
+      '!bg-[#120c07] !border-[#291f18] !text-[#ede3d6] !shadow-xl',
+  }}
+/>
+
+        <SyncedMusicPlayer />
+
+<div
+  aria-hidden="true"
+  className="fixed -left-[9999px] top-0 h-[200px] w-[200px]"
+>
+  <div id="youtube-player" />
+</div>
       </main>
     )
   }
