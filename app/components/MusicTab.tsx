@@ -121,6 +121,9 @@ const manualAlbumImages: Record<string, string> = {
 
   'goddess|Thorne':
     'https://i.scdn.co/image/ab67616d00001e026f4e4c07e8178879bb375fd2',
+
+    'KYS|torturedskin':
+    'https://i1.sndcdn.com/artworks-0NXgSwyJq3cxgKOr-n7F2cg-t500x500.png',
 }
 
 const manualAlbumDurations: Record<string, number> = {
@@ -1570,14 +1573,17 @@ const albumMeta = `${albumTracks.length} faixas · ${albumTotalMinutes}min`
       }`}
     >
       <img
-        src={
-          album.image?.[3]?.['#text'] ||
-          album.image?.[2]?.['#text'] ||
-          'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png'
-        }
-        alt={album.name}
-        className="w-full h-full object-cover"
-      />
+  src={
+    manualAlbumImages[
+      `${album.name}|${album.artist?.name}`
+    ] ||
+    album.image?.[3]?.['#text'] ||
+    album.image?.[2]?.['#text'] ||
+    'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png'
+  }
+  alt={album.name}
+  className="w-full h-full object-cover"
+/>
 
       <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
@@ -1639,14 +1645,17 @@ const albumMeta = `${albumTracks.length} faixas · ${albumTotalMinutes}min`
         <div className="p-2.5">
           <div className="relative aspect-square rounded-xl overflow-hidden mb-2">
             <img
-              src={
-                album.image?.[3]?.['#text'] ||
-                album.image?.[2]?.['#text'] ||
-                'https://i.scdn.co/image/ab67616d00001e022bcab0a1c1049ab6fb434f19'
-              }
-              alt={album.name}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-            />
+  src={
+    manualAlbumImages[
+      `${album.name}|${album.artist?.name}`
+    ] ||
+    album.image?.[3]?.['#text'] ||
+    album.image?.[2]?.['#text'] ||
+    'https://i.scdn.co/image/ab67616d00001e022bcab0a1c1049ab6fb434f19'
+  }
+  alt={album.name}
+  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+/>
 
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
