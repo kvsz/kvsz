@@ -69,12 +69,15 @@ const [seekPreview, setSeekPreview] = useState(0)
    * procura o vídeo correspondente.
    */
   useEffect(() => {
-    if (!spotify.song || !spotify.artist) {
-      setVideo(null)
-      return
-    }
+  if (!spotify.song || !spotify.artist) {
+    setVideo(null)
+    return
+  }
 
-    const controller = new AbortController()
+  const song = spotify.song
+  const artist = spotify.artist
+
+  const controller = new AbortController()
 
     const searchVideo = async () => {
       setLoading(true)
@@ -83,8 +86,8 @@ const [seekPreview, setSeekPreview] = useState(0)
       try {
         const response = await fetch(
   `/api/youtube-search?${new URLSearchParams({
-    song: spotify.song,
-    artist: spotify.artist,
+    song,
+    artist,
   }).toString()}`,
   {
     signal: controller.signal,
