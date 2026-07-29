@@ -3,27 +3,45 @@ import {
   NextResponse,
 } from 'next/server'
 
+import { decode } from 'he'
+
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
-type SearchItem = {
-  type: string
-  name: string
-  id: string
-  url: string
-  thumbnail: string
-  duration?: string
-  isLive?: boolean
-  isUpcoming?: boolean
-  author?: {
-    name?: string
-    verified?: boolean
+type YouTubeSearchItem = {
+  id?: {
+    videoId?: string
+  }
+  snippet?: {
+    title?: string
+    channelTitle?: string
+    thumbnails?: {
+      high?: {
+        url?: string
+      }
+      medium?: {
+        url?: string
+      }
+      default?: {
+        url?: string
+      }
+    }
   }
 }
 
-type SearchResponse = {
-  query?: string
-  items?: SearchItem[]
+type YouTubeSearchResponse = {
+  items?: YouTubeSearchItem[]
+  error?: {
+    message?: string
+  }
+}
+
+type RankedVideo = {
+  videoId: string
+  title: string
+  channel: string
+  thumbnail: string
+  score: number
 }
 
 function normalizeText(value: string) {
@@ -59,14 +77,14 @@ function countMatchingWords(
 }
 
 function scoreVideo(
-  item: SearchItem,
+  titleValue: string,
+  channelValue: string,
   song: string,
   artist: string,
 ) {
-  const title = normalizeText(item.name)
-  const channel = normalizeText(
-  item.author?.name ?? '',
-)
+  const title = normalizeText(titleValue)
+  const channel = normalizeText(channelValue)
+
   const normalizedSong = normalizeText(song)
   const normalizedArtist = normalizeText(artist)
 
@@ -74,24 +92,32 @@ function scoreVideo(
   const artistWords = getWords(artist)
 
   const songMatches = countMatchingWords(
-    item.name,
+    titleValue,
     songWords,
   )
 
-  const artistMatchesInTitle = countMatchingWords(
-    item.name,
-    artistWords,
-  )
+  const artistMatchesInTitle =
+    countMatchingWords(
+      titleValue,
+      artistWords,
+    )
 
   const artistMatchesInChannel =
     countMatchingWords(
-      item.author?.name ?? '',
+      channelValue,
       artistWords,
     )
 
   let score = 0
 
   if (title.includes(normalizedSong)) {
+    score += 100
+  }
+
+  if (
+    title.includes(normalizedSong) &&
+    title.includes(normalizedArtist)
+  ) {
     score += 100
   }
 
@@ -119,64 +145,63 @@ function scoreVideo(
       60
   }
 
-  if (item.author?.verified) {
-  score += 10
-}
-
-if (channel.endsWith(' topic')) {
-  score += 35
-}
-
-if (channel.endsWith(' topic')) {
-  score += 35
-}
+  if (channel.endsWith(' topic')) {
+    score += 50
+  }
 
   if (
-    title.includes('official audio') ||
-    title.includes('official video') ||
-    title.includes('official music video')
+    title.includes('official') ||
+    title.includes('visualizer')
   ) {
-    score += 12
+    score += 15
   }
 
   const unwantedVersions = [
-  'sped up',
-  'speed up',
-  'speedup',
-  'slowed',
-  'slowed down',
-  'slow down',
-  'reverb',
-  'nightcore',
-  'pitch',
-  'bass boosted',
-  '8d',
-  'remix',
-  'edit',
-  'cover',
-  'reaction',
-  'tutorial',
-  'karaoke',
-  'instrumental',
-]
+    'sped up',
+    'speed up',
+    'speedup',
+    'slowed',
+    'slowed down',
+    'slow down',
+    'reverb',
+    'nightcore',
+    'pitch',
+    'bass boosted',
+    '8d',
+    'remix',
+    'edit',
+    'cover',
+    'reaction',
+    'tutorial',
+    'karaoke',
+    'instrumental',
+    'live',
+    'ao vivo',
+    'concert',
+    'performance',
+    'unplugged',
+    'full album',
+    'compilation',
+    'playlist',
+  ]
 
-for (const term of unwantedVersions) {
-  const normalizedTerm =
-    normalizeText(term)
+  for (const term of unwantedVersions) {
+    const normalizedTerm =
+      normalizeText(term)
 
-  const resultHasTerm =
-    title.includes(normalizedTerm)
+    const resultHasTerm =
+      title.includes(normalizedTerm)
 
-  const requestedHasTerm =
-    normalizedSong.includes(normalizedTerm)
+    const requestedHasTerm =
+      normalizedSong.includes(normalizedTerm)
 
-  if (resultHasTerm && !requestedHasTerm) {
-    score -= 200
+    if (resultHasTerm && !requestedHasTerm) {
+      score -= 250
+    }
   }
-}
 
   if (songMatches === 0) {
-    score -= 150
+    score -= 200
   }
 
   return score
@@ -207,180 +232,98 @@ export async function GET(
     )
   }
 
+  const apiKey = process.env.YOUTUBE_API_KEY
+
+  if (!apiKey) {
+    return NextResponse.json(
+      {
+        error:
+          'A chave da YouTube Data API não foi configurada.',
+      },
+      {
+        status: 500,
+      },
+    )
+  }
+
   try {
-    const queries = [
-  `"${song}" "${artist}"`,
-  `${artist} ${song}`,
-  `${song} ${artist}`,
-  `"${song}"`,
-  `${song} audio`,
-]
+    const query =
+      `${artist} ${song}`
 
-const responses = await Promise.all(
-  queries.map(async (query) => {
-    try {
-      const response = await fetch(
-        `https://server1.mtabrasil.com.br/search?q=${encodeURIComponent(
-          query,
-        )}`,
-        {
-          cache: 'no-store',
-          headers: {
-            Accept: 'application/json',
-          },
-        },
+    const params = new URLSearchParams({
+      part: 'snippet',
+      type: 'video',
+      q: query,
+      maxResults: '25',
+      videoEmbeddable: 'true',
+      safeSearch: 'none',
+      regionCode: 'BR',
+      key: apiKey,
+    })
+
+    const response = await fetch(
+      `https://www.googleapis.com/youtube/v3/search?${params.toString()}`,
+      {
+        cache: 'no-store',
+      },
+    )
+
+    const data: YouTubeSearchResponse =
+      await response.json()
+
+    if (!response.ok) {
+      throw new Error(
+        data.error?.message ??
+          `YouTube respondeu com ${response.status}`,
       )
+    }
 
-      if (!response.ok) {
-        console.error(
-          `Busca "${query}" respondeu com ${response.status}`,
+    const rankedVideos: RankedVideo[] =
+      (data.items ?? [])
+        .map((item) => {
+          const videoId =
+            item.id?.videoId ?? ''
+
+          const title = decode(
+  item.snippet?.title ?? '',
+)
+
+          const channel =
+            item.snippet?.channelTitle ?? ''
+
+          const thumbnail =
+            item.snippet?.thumbnails?.high?.url ??
+            item.snippet?.thumbnails?.medium?.url ??
+            item.snippet?.thumbnails?.default?.url ??
+            `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`
+
+          return {
+            videoId,
+            title,
+            channel,
+            thumbnail,
+            score: scoreVideo(
+              title,
+              channel,
+              song,
+              artist,
+            ),
+          }
+        })
+        .filter((item) => item.videoId)
+        .sort(
+          (first, second) =>
+            second.score - first.score,
         )
 
-        return [] as SearchItem[]
-      }
-
-      const data: SearchResponse =
-        await response.json()
-
-        console.log('Resultado da busca externa:', {
-  query,
-  status: response.status,
-  quantidade: data.items?.length ?? 0,
-})
-
-      return data.items ?? []
-    } catch (error) {
-      console.error(
-        `Erro na busca "${query}":`,
-        error,
-      )
-
-      return [] as SearchItem[]
-    }
-  }),
-)
-
-const allItems = responses.flat()
-
-const uniqueItems = Array.from(
-  new Map(
-    allItems
-      .filter((item) => Boolean(item.id))
-      .map((item) => [item.id, item]),
-  ).values(),
-)
-
-    const blockedTerms = [
-  'sped up',
-  'speed up',
-  'speedup',
-  'slowed',
-  'slowed down',
-  'slow down',
-  'nightcore',
-  'bass boosted',
-  '8d audio',
-
-  'live',
-  'ao vivo',
-  'concert',
-  'performance',
-  'unplugged',
-  'tiny desk',
-  'las vegas',
-  'madison square garden',
-  'lollapalooza',
-  'rock in rio',
-]
-
-const normalizedRequestedSong =
-  normalizeText(song)
-
-/*
- * Primeiro pega todos os vídeos realmente válidos,
- * sem aplicar os filtros de versão.
- */
-const validVideos = uniqueItems.filter((item) => {
-  return (
-    item.type === 'video' &&
-    Boolean(item.id) &&
-    !item.isLive &&
-    !item.isUpcoming
-  )
-})
-
-/*
- * Depois remove versões indesejadas.
- */
-const filteredVideos = validVideos.filter((item) => {
-  const normalizedTitle =
-    normalizeText(item.name)
-
-  return !blockedTerms.some((term) => {
-    const normalizedTerm =
-      normalizeText(term)
-
-    const resultHasTerm =
-      normalizedTitle.includes(normalizedTerm)
-
-    const requestedHasTerm =
-      normalizedRequestedSong.includes(
-        normalizedTerm,
-      )
-
-    return resultHasTerm && !requestedHasTerm
-  })
-})
-
-/*
- * Se os filtros removerem tudo, usa os vídeos
- * válidos e deixa o score escolher o menos ruim.
- */
-const videos =
-  filteredVideos.length > 0
-    ? filteredVideos
-    : validVideos
-
-    if (videos.length === 0) {
-  return NextResponse.json(
-    {
-      error: 'Nenhum vídeo foi encontrado.',
-      debug: {
-        queries,
-        totalItems: allItems.length,
-        uniqueItems: uniqueItems.length,
-        validVideos: validVideos.length,
-        filteredVideos: filteredVideos.length,
-      },
-    },
-    {
-      status: 404,
-    },
-  )
-}
-
-    const rankedVideos = videos
-      .map((video) => ({
-        video,
-        score: scoreVideo(
-          video,
-          song,
-          artist,
-        ),
-      }))
-      .sort(
-        (first, second) =>
-          second.score - first.score,
-      )
-
     const selectedVideo =
-      rankedVideos[0]?.video
+      rankedVideos[0]
 
     if (!selectedVideo) {
       return NextResponse.json(
         {
           error:
-            'Nenhum resultado compatível foi encontrado.',
+            'Nenhum vídeo foi encontrado.',
         },
         {
           status: 404,
@@ -389,28 +332,21 @@ const videos =
     }
 
     return NextResponse.json({
-      videoId: selectedVideo.id,
-      title: selectedVideo.name,
-      thumbnail:
-        selectedVideo.thumbnail,
-      duration:
-        selectedVideo.duration ?? null,
-      url: selectedVideo.url,
-      channel:
-        selectedVideo.author?.name ??
-        null,
-      verified:
-        selectedVideo.author?.verified ??
-        false,
-
-      score: rankedVideos[0].score,
+      videoId: selectedVideo.videoId,
+      title: selectedVideo.title,
+      thumbnail: selectedVideo.thumbnail,
+      duration: null,
+      url:
+        `https://www.youtube.com/watch?v=${selectedVideo.videoId}`,
+      channel: selectedVideo.channel,
+      verified: false,
+      score: selectedVideo.score,
       alternatives: rankedVideos
         .slice(0, 3)
-        .map(({ video, score }) => ({
-          title: video.name,
-          channel:
-            video.author?.name ?? null,
-          score,
+        .map((video) => ({
+          title: video.title,
+          channel: video.channel,
+          score: video.score,
         })),
     })
   } catch (error) {
