@@ -242,6 +242,12 @@ const responses = await Promise.all(
       const data: SearchResponse =
         await response.json()
 
+        console.log('Resultado da busca externa:', {
+  query,
+  status: response.status,
+  quantidade: data.items?.length ?? 0,
+})
+
       return data.items ?? []
     } catch (error) {
       console.error(
@@ -336,16 +342,22 @@ const videos =
     : validVideos
 
     if (videos.length === 0) {
-      return NextResponse.json(
-        {
-          error:
-            'Nenhum vídeo foi encontrado.',
-        },
-        {
-          status: 404,
-        },
-      )
-    }
+  return NextResponse.json(
+    {
+      error: 'Nenhum vídeo foi encontrado.',
+      debug: {
+        queries,
+        totalItems: allItems.length,
+        uniqueItems: uniqueItems.length,
+        validVideos: validVideos.length,
+        filteredVideos: filteredVideos.length,
+      },
+    },
+    {
+      status: 404,
+    },
+  )
+}
 
     const rankedVideos = videos
       .map((video) => ({
