@@ -120,11 +120,11 @@ function scoreVideo(
   }
 
   if (item.author?.verified) {
-    score += 10
-  }
-
-  if (item.author?.verified) {
   score += 10
+}
+
+if (channel.endsWith(' topic')) {
+  score += 35
 }
 
 if (channel.endsWith(' topic')) {
@@ -160,12 +160,19 @@ if (channel.endsWith(' topic')) {
   'instrumental',
 ]
 
-if (
-  unwantedVersions.some((term) =>
-    title.includes(term),
-  )
-) {
-  score -= 200
+for (const term of unwantedVersions) {
+  const normalizedTerm =
+    normalizeText(term)
+
+  const resultHasTerm =
+    title.includes(normalizedTerm)
+
+  const requestedHasTerm =
+    normalizedSong.includes(normalizedTerm)
+
+  if (resultHasTerm && !requestedHasTerm) {
+    score -= 200
+  }
 }
 
   if (songMatches === 0) {
@@ -204,7 +211,9 @@ export async function GET(
     const queries = [
   `"${song}" "${artist}"`,
   `${artist} ${song}`,
+  `${song} ${artist}`,
   `"${song}"`,
+  `${song} audio`,
 ]
 
 const responses = await Promise.all(
@@ -264,51 +273,67 @@ const uniqueItems = Array.from(
   'slow down',
   'nightcore',
   'bass boosted',
-  '8d',
+  '8d audio',
 
-  // Versões ao vivo
   'live',
   'ao vivo',
   'concert',
-  'festival',
   'performance',
-  'session',
-  'acoustic session',
   'unplugged',
-  'tour',
+  'tiny desk',
   'las vegas',
   'madison square garden',
   'lollapalooza',
   'rock in rio',
-  'tiny desk',
 ]
 
 const normalizedRequestedSong =
   normalizeText(song)
 
-const videos = uniqueItems.filter((item) => {
-  if (
-    item.type !== 'video' ||
-    !item.id ||
-    item.isLive ||
-    item.isUpcoming
-  ) {
-    return false
-  }
+/*
+ * Primeiro pega todos os vídeos realmente válidos,
+ * sem aplicar os filtros de versão.
+ */
+const validVideos = uniqueItems.filter((item) => {
+  return (
+    item.type === 'video' &&
+    Boolean(item.id) &&
+    !item.isLive &&
+    !item.isUpcoming
+  )
+})
 
+/*
+ * Depois remove versões indesejadas.
+ */
+const filteredVideos = validVideos.filter((item) => {
   const normalizedTitle =
     normalizeText(item.name)
 
   return !blockedTerms.some((term) => {
+    const normalizedTerm =
+      normalizeText(term)
+
     const resultHasTerm =
-      normalizedTitle.includes(term)
+      normalizedTitle.includes(normalizedTerm)
 
     const requestedHasTerm =
-      normalizedRequestedSong.includes(term)
+      normalizedRequestedSong.includes(
+        normalizedTerm,
+      )
 
     return resultHasTerm && !requestedHasTerm
   })
 })
+
+/*
+ * Se os filtros removerem tudo, usa os vídeos
+ * válidos e deixa o score escolher o menos ruim.
+ */
+const videos =
+  filteredVideos.length > 0
+    ? filteredVideos
+    : validVideos
 
     if (videos.length === 0) {
       return NextResponse.json(
