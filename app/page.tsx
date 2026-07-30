@@ -2434,7 +2434,7 @@ const [nitroTooltipOpen, setNitroTooltipOpen] =
                       color: 'lab(53.5643 4.57534 10.6701)'
                     }}>
                   <Calendar className="w-3.5 h-3.5" />
-                  <span>06 de dezembro de 2024</span>
+                  <span>6 de dezembro de 2024</span>
                 </div>
               </div>
 
