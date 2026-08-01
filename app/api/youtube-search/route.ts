@@ -85,6 +85,15 @@ function scoreVideo(
   const title = normalizeText(titleValue)
   const channel = normalizeText(channelValue)
 
+  const descriptiveTitle = titleValue
+  .normalize('NFD')
+  .replace(/\p{Diacritic}/gu, '')
+  .toLowerCase()
+  .replace(/&amp;/g, '&')
+  .replace(/[^a-z0-9]+/g, ' ')
+  .replace(/\s+/g, ' ')
+  .trim()
+
   const normalizedSong = normalizeText(song)
   const normalizedArtist = normalizeText(artist)
 
@@ -145,58 +154,75 @@ function scoreVideo(
       60
   }
 
-  if (channel.endsWith(' topic')) {
-    score += 50
-  }
+  if (
+  channel.endsWith(' topic') ||
+  channel.includes(' vevo')
+) {
+  score += 120
+}
 
   if (
-    title.includes('official') ||
-    title.includes('visualizer')
-  ) {
-    score += 15
-  }
+  descriptiveTitle.includes('official audio') ||
+  descriptiveTitle.includes('official video') ||
+  descriptiveTitle.includes(
+    'official music video',
+  )
+) {
+  score += 120
+}
+
+if (descriptiveTitle.includes('visualizer')) {
+  score += 40
+}
 
   const unwantedVersions = [
-    'sped up',
-    'speed up',
-    'speedup',
-    'slowed',
-    'slowed down',
-    'slow down',
-    'reverb',
-    'nightcore',
-    'pitch',
-    'bass boosted',
-    '8d',
-    'remix',
-    'edit',
-    'cover',
-    'reaction',
-    'tutorial',
-    'karaoke',
-    'instrumental',
-    'live',
-    'ao vivo',
-    'concert',
-    'performance',
-    'unplugged',
-    'full album',
-    'compilation',
-    'playlist',
-  ]
+  'sped up',
+  'speed up',
+  'speedup',
+  'slowed',
+  'slowed down',
+  'slow down',
+  'reverb',
+  'nightcore',
+  'pitch',
+  'bass boosted',
+  '8d',
+  'remix',
+  'edit',
+  'cover',
+  'reaction',
+  'tutorial',
+  'karaoke',
+  'instrumental',
+
+  'lyrics',
+  'lyric',
+  'lyric video',
+  'lyrics video',
+  'with lyrics',
+
+  'live',
+  'ao vivo',
+  'concert',
+  'performance',
+  'unplugged',
+  'full album',
+  'compilation',
+  'playlist',
+]
 
   for (const term of unwantedVersions) {
     const normalizedTerm =
       normalizeText(term)
 
     const resultHasTerm =
-      title.includes(normalizedTerm)
+  descriptiveTitle.includes(normalizedTerm)
 
     const requestedHasTerm =
       normalizedSong.includes(normalizedTerm)
 
     if (resultHasTerm && !requestedHasTerm) {
-      score -= 250
+      score -= 400
     }
   }
 

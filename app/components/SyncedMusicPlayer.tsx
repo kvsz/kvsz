@@ -14,6 +14,7 @@ import {
   Volume2,
   VolumeX,
   X,
+  UsersRound,
 } from 'lucide-react'
 
 import {
@@ -36,6 +37,16 @@ type YouTubeResult = {
 
 export default function SyncedMusicPlayer() {
     const [isOpen, setIsOpen] = useState(false)
+
+    const [playerActivated, setPlayerActivated] =
+  useState(false)
+
+  const [isSyncing, setIsSyncing] =
+  useState(false)
+
+const [autoSyncEnabled, setAutoSyncEnabled] =
+  useState(false)
+  
   const spotify = useSpotify()
 
 const {
@@ -139,14 +150,67 @@ const [seekPreview, setSeekPreview] = useState(0)
    * Ele ainda não começa a tocar.
    */
   useEffect(() => {
-    if (!isReady || !video?.videoId) return
+  if (!isReady || !video?.videoId) {
+    return
+  }
 
-    loadVideo({
-      videoId: video.videoId,
-      startSeconds: 0,
-      autoplay: false,
-    })
-  }, [isReady, video?.videoId, loadVideo])
+  /*
+   * A sincronização foi ativada pelo visitante.
+   */
+  if (autoSyncEnabled) {
+    /*
+     * Você voltou a ouvir Spotify ou trocou
+     * para uma nova faixa real.
+     */
+    if (
+      spotify.isPlaying &&
+      !spotify.fallback
+    ) {
+      const timestampStart =
+        spotify.timestampStart
+
+      const startSeconds =
+        timestampStart
+          ? Math.max(
+              0,
+              (Date.now() - timestampStart) / 1000,
+            )
+          : 0
+
+      setIsSyncing(true)
+
+      loadVideo({
+        videoId: video.videoId,
+        startSeconds,
+        autoplay: true,
+      })
+    }
+
+    /*
+     * No fallback, não prepara novamente o vídeo,
+     * pois a última música já pode estar tocando.
+     */
+    return
+  }
+
+  /*
+   * Apenas buscou/abriu o painel:
+   * prepara a música sem reproduzir.
+   */
+  loadVideo({
+    videoId: video.videoId,
+    startSeconds: 0,
+    autoplay: false,
+  })
+}, [
+  isReady,
+  video?.videoId,
+  loadVideo,
+  autoSyncEnabled,
+  spotify.isPlaying,
+  spotify.fallback,
+  spotify.timestampStart,
+])
 
   const showNowPlayingToast = () => {
   if (!video) return
@@ -191,32 +255,85 @@ const [seekPreview, setSeekPreview] = useState(0)
   )
 }
 
-  const handleSynchronize = () => {
-    if (!video) return
+const handleSearch = () => {
+  if (!spotify.song || !spotify.artist) {
+    return
+  }
 
-    
+  /*
+   * Buscar mostra o painel completo,
+   * mas não inicia sincronização automática.
+   */
+  setAutoSyncEnabled(false)
+  setPlayerActivated(true)
+}
 
-    const timestampStart =
-      spotify.timestampStart
+const handleSynchronize = () => {
+  if (
+    !video ||
+    !isReady ||
+    loading ||
+    isSyncing
+  ) {
+    return
+  }
 
-    const startSeconds =
-      spotify.isPlaying &&
-      !spotify.fallback &&
-      timestampStart
-        ? Math.max(
-            0,
-            (Date.now() - timestampStart) / 1000,
-          )
-        : 0
+  const shouldLiveSync =
+    spotify.isPlaying &&
+    !spotify.fallback
 
-    loadVideo({
-      videoId: video.videoId,
-      startSeconds,
-      autoplay: true,
-    })
+  setIsSyncing(true)
 
+  /*
+   * A pessoa escolheu acompanhar seu Spotify.
+   * Mesmo no fallback, continuamos aguardando
+   * você voltar a ouvir uma música real.
+   */
+  setAutoSyncEnabled(true)
+
+  const timestampStart =
+    spotify.timestampStart
+
+  const startSeconds =
+    shouldLiveSync && timestampStart
+      ? Math.max(
+          0,
+          (Date.now() - timestampStart) / 1000,
+        )
+      : 0
+
+  const loaded = loadVideo({
+    videoId: video.videoId,
+    startSeconds,
+    autoplay: true,
+  })
+
+  if (!loaded) {
+    setIsSyncing(false)
+    setAutoSyncEnabled(false)
+    return
+  }
+
+  if (!shouldLiveSync) {
+    setPlayerActivated(true)
+    setIsSyncing(false)
     showNowPlayingToast()
   }
+}
+
+useEffect(() => {
+  /*
+   * Quando o YouTube realmente começar a tocar,
+   * encerra o carregamento e revela o painel.
+   */
+  if (!isSyncing || !isPlaying) {
+    return
+  }
+
+  setIsSyncing(false)
+  setPlayerActivated(true)
+  showNowPlayingToast()
+}, [isSyncing, isPlaying])
 
 const formatSeconds = (seconds: number) => {
   if (!Number.isFinite(seconds)) {
@@ -296,33 +413,10 @@ const isLiveSync =
 const canSeek =
   !isLiveSync && safeDuration > 0
 
-
-  
-
-if (!spotify.song || !spotify.artist) {
-  return (
-    <motion.button
-      type="button"
-      disabled
-      aria-label="Nenhuma música disponível"
-      initial={{ scale: 0 }}
-      animate={{ scale: 1 }}
-      className="
-        fixed bottom-6 right-6 z-[9999]
-        flex h-11 w-11
-        cursor-not-allowed
-        items-center justify-center
-        rounded-xl bg-[#b5825f]/50
-        text-[#120c07]/60
-        shadow-lg
-        max-md:bottom-24
-        max-md:right-4
-      "
-    >
-      <span className="text-xs">TESTE</span>
-    </motion.button>
-  )
-}
+  const showPlayerContent =
+  playerActivated &&
+  Boolean(spotify.song) &&
+  Boolean(spotify.artist)
 
   return (
   <>
@@ -372,7 +466,7 @@ if (!spotify.song || !spotify.artist) {
       {/* Cabeçalho */}
       <div className="mb-3 flex items-center justify-between">
   <div className="flex items-center gap-2">
-  {isPlaying ? (
+  {showPlayerContent && isPlaying ? (
     <div className="flex items-end gap-0.5">
       {[0, 1, 2].map((bar) => (
         <motion.span
@@ -395,8 +489,8 @@ if (!spotify.song || !spotify.artist) {
   )}
 
   <span className="text-[10px] font-medium uppercase tracking-wider text-[#8d7d6e]">
-    Music
-  </span>
+  {isLiveSync ? 'Sync' : 'Music'}
+</span>
 </div>
 
   <button
@@ -415,8 +509,9 @@ if (!spotify.song || !spotify.artist) {
   </button>
 </div>
 
-      <div>
-        {/* Música */}
+      {showPlayerContent ? (
+  <div>
+    {/* Música */}
         <div className="flex items-center gap-2.5">
           <div className="relative flex-shrink-0">
             <img
@@ -753,11 +848,119 @@ if (!spotify.song || !spotify.artist) {
         </div>
 
         {error && (
-          <p className="text-[10px] text-red-400">
-            {error}
-          </p>
-        )}
-      </div>
+  <p className="text-[10px] text-red-400">
+    {error}
+  </p>
+)}
+  </div>
+) : (
+  <div className="flex flex-col items-center py-2 text-center">
+    <div
+      className="
+        mb-2 flex h-10 w-10
+        items-center justify-center
+        rounded-xl bg-[#b5825f]/10
+      "
+    >
+      <Music className="h-5 w-5 text-[#b5825f]" />
+    </div>
+
+    <h3 className="mb-0.5 text-xs font-semibold text-[#ede3d6]">
+      Nenhuma música
+    </h3>
+
+    <p className="mb-2.5 text-[10px] text-[#8d7d6e]">
+      Busque ou sincronize
+    </p>
+
+    <div className="flex w-full flex-col gap-1.5">
+      <button
+        type="button"
+        onClick={handleSynchronize}
+        disabled={
+  !spotify.song ||
+  !spotify.artist ||
+  !isReady ||
+  !video ||
+  loading ||
+  isSyncing
+}
+        className="
+          flex h-8 w-full
+          items-center justify-center
+          rounded-lg bg-[#b5825f]
+          text-[10px] font-medium
+          text-[#120c07]
+          transition-colors
+          hover:bg-[#c18d68]
+          disabled:cursor-not-allowed
+          disabled:opacity-40
+        "
+      >
+        {isSyncing ? (
+  <motion.span
+    animate={{ rotate: 360 }}
+    transition={{
+      duration: 0.7,
+      repeat: Infinity,
+      ease: 'linear',
+    }}
+    className="
+      mr-1 h-3 w-3 rounded-full
+      border border-[#120c07]/30
+      border-t-[#120c07]
+    "
+  />
+) : (
+  <UsersRound className="mr-1 h-3 w-3" />
+)}
+
+{isSyncing
+  ? 'Sincronizando...'
+  : 'Sincronizar'}
+      </button>
+
+      <button
+        type="button"
+        onClick={handleSearch}
+        disabled={
+  !spotify.song ||
+  !spotify.artist ||
+  loading ||
+  !video ||
+  isSyncing
+}
+        className="
+          flex h-8 w-full
+          items-center justify-center
+          rounded-lg border border-[#291f18]
+          bg-transparent
+          text-[10px] font-medium
+          text-[#ede3d6]
+          transition-colors
+          hover:bg-[#221812]/50
+          disabled:cursor-not-allowed
+          disabled:opacity-40
+        "
+      >
+        <Search className="mr-1 h-3 w-3" />
+        Buscar
+      </button>
+    </div>
+
+    {loading && (
+      <p className="mt-2 text-[10px] text-[#8d7d6e]">
+        Procurando música...
+      </p>
+    )}
+
+    {error && (
+      <p className="mt-2 text-[10px] text-red-400">
+        {error}
+      </p>
+    )}
+  </div>
+)}
     </div>
   </div>
 </motion.div>
