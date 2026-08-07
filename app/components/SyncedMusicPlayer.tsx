@@ -418,6 +418,9 @@ const canSeek =
   Boolean(spotify.song) &&
   Boolean(spotify.artist)
 
+  const showActiveMinimized =
+  autoSyncEnabled && isPlaying
+
   return (
   <>
     <AnimatePresence>
@@ -438,8 +441,8 @@ const canSeek =
   }}
   transition={{
     type: 'spring',
-    stiffness: 300,
-    damping: 25,
+    stiffness: 150,
+    damping: 21,
   }}
   style={{
     transformOrigin: 'bottom right',
@@ -994,7 +997,51 @@ const canSeek =
       max-md:right-4
     "
   >
-    <Music className="h-5 w-5" />
+    {showActiveMinimized ? (
+      <>
+        {/* Bolinha verde */}
+        <motion.div
+          animate={{
+            scale: [1, 1.2, 1],
+          }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+          className="
+            absolute -right-0.5 -top-0.5
+            h-3 w-3 rounded-full
+            border-2 border-[#080503]
+            bg-emerald-500
+          "
+        />
+
+        {/* Equalizador */}
+        <div className="flex h-3 items-end gap-0.5">
+          {[0, 1, 2, 3].map((bar) => (
+            <motion.span
+              key={bar}
+              animate={{
+                height: [3, 8, 5, 10, 3],
+              }}
+              transition={{
+                duration: 0.8,
+                delay: bar * 0.1,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+              className="
+                w-0.5 rounded-full
+                bg-[#120c07]
+              "
+            />
+          ))}
+        </div>
+      </>
+    ) : (
+      <Music className="h-5 w-5" />
+    )}
   </motion.button>
 )}
   </>

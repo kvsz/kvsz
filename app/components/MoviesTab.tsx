@@ -430,7 +430,7 @@ const filteredItems = items.filter((item: any) => {
   transition={{ delay: 0.15, duration: 0.5 }}
   className="mb-6"
 >
-  <div className="rounded-2xl border border-[#201710]/50 bg-[rgba(28,22,12,0.32)] p-4 space-y-3">
+  <div className="relative rounded-2xl border border-[#201710]/50 bg-[rgba(28,22,12,0.32)] p-4 space-y-3">
 
     <div className="flex items-center gap-3">
 
@@ -558,37 +558,67 @@ const filteredItems = items.filter((item: any) => {
       </div>
 </div>
 
-<div className="flex flex-wrap items-center gap-2 pt-1">
+<div className="relative flex items-center gap-2 pt-1">
 
-      <div className="flex flex-wrap items-center gap-2">
+  <div className="flex flex-wrap items-center gap-2">
 
-  <div className="relative">
-    <button className="flex items-center gap-1.5 px-3 py-0.5 rounded-lg text-[11px] font-semibold transition-all border bg-secondary/40 text-muted-foreground border-border/50 hover:text-foreground hover:border-border">
+    <div className="relative">
+      <button className="flex items-center gap-1.5 px-3 py-0.5 rounded-lg text-[11px] font-semibold transition-all border bg-secondary/40 text-muted-foreground border-border/50 hover:text-foreground hover:border-border">
+        <LayoutGrid className="w-3 h-3" />
 
-      <LayoutGrid className="w-3 h-3" />
+        Gênero
 
-      Gênero
+        <ChevronDown className="w-3 h-3 transition-transform" />
+      </button>
+    </div>
 
-      <ChevronDown className="w-3 h-3 transition-transform" />
-    </button>
+    <div className="w-px h-5 bg-border/50 hidden sm:block" />
+
+    <div className="relative">
+      <button className="flex items-center gap-1.5 px-3 py-0.5 rounded-lg bg-secondary/40 border border-border/50 text-[11px] font-semibold text-muted-foreground hover:text-foreground hover:border-border transition-all">
+        <ArrowUpDown className="w-3 h-3" />
+
+        Maior nota
+
+        <ChevronDown className="w-3 h-3 transition-transform" />
+      </button>
+    </div>
+
   </div>
 
-  <div className="w-px h-5 bg-border/50 hidden sm:block" />
-
-  <div className="relative">
-    <button className="flex items-center gap-1.5 px-3 py-0.5 rounded-lg bg-secondary/40 border border-border/50 text-[11px] font-semibold text-muted-foreground hover:text-foreground hover:border-border transition-all">
-
-      <ArrowUpDown className="w-3 h-3" />
-
-      Maior nota
-
-      <ChevronDown className="w-3 h-3 transition-transform" />
+  {(search ||
+    typeFilter !== 'all' ||
+    statusFilter !== 'all') && (
+    <button
+      type="button"
+      onClick={() => {
+        setSearch('')
+        setTypeFilter('all')
+        setStatusFilter('all')
+      }}
+      className="
+        absolute
+        right-0
+        top-1/2
+        -translate-y-1/2
+        flex items-center gap-1
+        rounded-lg
+        px-2.5 py-0.5
+        text-[11px] font-semibold
+        text-red-400
+        transition-all
+        hover:bg-red-500/10
+        hover:text-red-300
+      "
+    >
+      <X className="h-3 w-3" />
+      Limpar
     </button>
-  </div>
+  )}
 
 </div>
-    </div>
-  </div>
+</div>
+  
 </motion.div>
 
 <motion.div

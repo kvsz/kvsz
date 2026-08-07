@@ -665,7 +665,7 @@ const albumMeta = `${albumTracks.length} faixas · ${albumTotalMinutes}min`
       <div className="grid grid-cols-2 gap-6 mb-2">
 
         <div>
-          <p className="text-xs text-[#8d7d6e] mb-1">
+          <p className="text-xs text-muted-foreground mb-1">
             Média diária
           </p>
 
@@ -783,7 +783,7 @@ const albumMeta = `${albumTracks.length} faixas · ${albumTotalMinutes}min`
           Desde {memberSince}
         </div>
 
-        <div className="font-bold text-[lab(59.0642%_17.2913_27.0713)]">
+        <div className="font-medium text-[lab(59.0642%_17.2913_27.0713)]">
   {daysSinceCreation} dias
 </div>
       </div>
@@ -816,11 +816,11 @@ const albumMeta = `${albumTracks.length} faixas · ${albumTotalMinutes}min`
             </div>
 
             <div>
-              <p className="text-xs font-bold text-[#8d7d6e] uppercase tracking-wider">
-                ARTISTA FAVORITO
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                Artista Favorito
               </p>
 
-              <p className="text-[10px] text-[#8d7d6e]/70">
+              <p className="text-[10px] text-muted-foreground/70">
                 Mais ouvido
               </p>
             </div>
@@ -895,7 +895,7 @@ const albumMeta = `${albumTracks.length} faixas · ${albumTotalMinutes}min`
                   Do total
                 </span>
 
-                <span className="text-lg font-black text-white">
+                <span className="text-lg font-black text-foreground">
                   {((parseInt(topArtist.playcount || '0') / totalScrobbles) * 100).toFixed(1)}%
                 </span>
               </div>

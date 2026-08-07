@@ -15,7 +15,7 @@
   import { inter } from '@/app/fonts'
   import {
     User, Info, Gamepad, Users, Calendar, Music,
-    MessageCircle, Disc, Headphones, Instagram, Film, LockKeyhole, ChevronLeft, ChevronRight, Handbag, UserRoundCheck, Lock, ExternalLink, TriangleAlert
+    MessageCircle, Disc, Headphones, Instagram, Film, LockKeyhole, ChevronLeft, ChevronRight, Handbag, UserRoundCheck, Lock, ExternalLink, TriangleAlert, House
   } from 'lucide-react'
 
   type SpotifyData = {
@@ -176,7 +176,7 @@ type RobloxData = {
   avatar: 'https://i.pinimg.com/736x/72/b5/50/72b550d2616825119ebf7ed7ee46ac63.jpg',
   posts: 0,
   followers: 21,
-  following: 30,
+  following: 29,
   bio: (
   <>
     nothing less,
@@ -2419,10 +2419,10 @@ const [nitroTooltipOpen, setNitroTooltipOpen] =
               
 
               <div className="mb-4">
-                <h1 className="text-2xl font-bold" style={{ color: '#ede3d6' }}>
+                <h1 className="text-2xl font-bold text-foreground">
                   {discordData?.discord_user.global_name || '07'}
                 </h1>
-                <p className="text-sm font-mono" style={{ color: '#8d7d6e' }}>
+                <p className="text-muted-foreground text-sm font-mono">
                   @{discordData?.discord_user.username || 'krov'}
                 </p>
               </div>
@@ -2774,6 +2774,48 @@ const [nitroTooltipOpen, setNitroTooltipOpen] =
     const [robloxModalOpen, setRobloxModalOpen] = useState(false)
     const [activeTab, setActiveTab] = useState<'home' | 'sobre' | 'lazer' | 'amigos'>('home')
     const [lazerTab, setLazerTab] = useState<'musica' | 'filmes'>('musica')
+    const [lazerSelectedTab, setLazerSelectedTab] =
+  useState<'musica' | 'filmes'>('musica')
+    const [lazerDirection, setLazerDirection] =
+  useState(1)
+  const [isLazerSwitching, setIsLazerSwitching] =
+  useState(false)
+  useEffect(() => {
+  const savedTab =
+    sessionStorage.getItem('activeTab')
+
+  if (
+    savedTab === 'home' ||
+    savedTab === 'sobre' ||
+    savedTab === 'lazer' ||
+    savedTab === 'amigos'
+  ) {
+    setActiveTab(savedTab)
+  }
+
+  const savedLazerTab =
+    sessionStorage.getItem('lazerTab')
+
+  if (
+    savedLazerTab === 'musica' ||
+    savedLazerTab === 'filmes'
+  ) {
+    setLazerTab(savedLazerTab)
+  }
+}, [])
+useEffect(() => {
+  sessionStorage.setItem(
+    'activeTab',
+    activeTab,
+  )
+}, [activeTab])
+
+useEffect(() => {
+  sessionStorage.setItem(
+    'lazerTab',
+    lazerTab,
+  )
+}, [lazerTab])
     const DISCORD_ID = '1314652031675531380'
     const controls = useAnimation()
     const isFirstRender = useRef(true)
@@ -2996,8 +3038,8 @@ const [nitroTooltipOpen, setNitroTooltipOpen] =
     <nav>
       <div className="flex items-center gap-1 relative">
         {[
-          { id: 'home', label: 'Home', icon: User },
-          { id: 'sobre', label: 'Sobre', icon: Info },
+          { id: 'home', label: 'Home', icon: House },
+          { id: 'sobre', label: 'Sobre', icon: User },
           { id: 'lazer', label: 'Lazer', icon: LazerIcon },
         ].map((tab) => {
           const Icon = tab.icon
@@ -3097,24 +3139,62 @@ const [nitroTooltipOpen, setNitroTooltipOpen] =
 
         <div className="mt-4 flex items-center gap-1 p-1 rounded-[calc(var(--radius)+4px)] bg-secondary/40 border border-border/50 w-fit">
           <button
-    onClick={() => setLazerTab('musica')}
+    onClick={() => {
+  if (
+    lazerSelectedTab === 'musica' ||
+    isLazerSwitching
+  ) {
+    return
+  }
+
+  // O botão troca NA HORA
+  setLazerSelectedTab('musica')
+
+  setLazerDirection(-1)
+  setIsLazerSwitching(true)
+
+  // O conteúdo espera a animação
+  setTimeout(() => {
+    setLazerTab('musica')
+    setIsLazerSwitching(false)
+  }, 300)
+}}
     className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-      lazerTab === 'musica'
-        ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
-        : 'text-muted-foreground hover:text-foreground hover:bg-secondary/60'
-    }`}
+  lazerSelectedTab === 'musica'
+    ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
+    : 'text-muted-foreground hover:text-foreground hover:bg-secondary/60'
+}`}
   >
     <Music className="w-4 h-4" />
     Música
   </button>
 
           <button
-    onClick={() => setLazerTab('filmes')}
+    onClick={() => {
+  if (
+    lazerSelectedTab === 'filmes' ||
+    isLazerSwitching
+  ) {
+    return
+  }
+
+  // O botão troca NA HORA
+  setLazerSelectedTab('filmes')
+
+  setLazerDirection(1)
+  setIsLazerSwitching(true)
+
+  // O conteúdo espera a animação
+  setTimeout(() => {
+    setLazerTab('filmes')
+    setIsLazerSwitching(false)
+  }, 300)
+}}
     className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-      lazerTab === 'filmes'
-        ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
-        : 'text-muted-foreground hover:text-foreground hover:bg-secondary/60'
-    }`}
+  lazerSelectedTab === 'filmes'
+    ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
+    : 'text-muted-foreground hover:text-foreground hover:bg-secondary/60'
+}`}
   >
     <Film className="w-4 h-4" />
     Filmes & Séries
@@ -3122,13 +3202,65 @@ const [nitroTooltipOpen, setNitroTooltipOpen] =
         </div>
       </motion.div>
 
-      <div className={lazerTab === 'musica' ? 'block' : 'hidden'}>
-  <MusicTab />
-</div>
+      <div className="relative">
+  {/* MÚSICA */}
+  <motion.div
+    initial={false}
+    animate={{
+      opacity:
+        lazerTab === 'musica' && !isLazerSwitching
+          ? 1
+          : 0,
 
-  <div className={lazerTab === 'filmes' ? 'block' : 'hidden'}>
+      x:
+        lazerTab === 'musica'
+          ? isLazerSwitching
+            ? -28
+            : 0
+          : -28,
+    }}
+    transition={{
+      duration: 0.4,
+      ease: [0.4, 0, 0.2, 1],
+    }}
+    className={
+      lazerTab === 'musica'
+        ? 'relative'
+        : 'pointer-events-none absolute inset-x-0 top-0'
+    }
+  >
+    <MusicTab />
+  </motion.div>
+
+  {/* FILMES E SÉRIES */}
+  <motion.div
+    initial={false}
+    animate={{
+      opacity:
+        lazerTab === 'filmes' && !isLazerSwitching
+          ? 1
+          : 0,
+
+      x:
+        lazerTab === 'filmes'
+          ? isLazerSwitching
+            ? 28
+            : 0
+          : 28,
+    }}
+    transition={{
+      duration: 0.4,
+      ease: [0.4, 0, 0.2, 1],
+    }}
+    className={
+      lazerTab === 'filmes'
+        ? 'relative'
+        : 'pointer-events-none absolute inset-x-0 top-0'
+    }
+  >
     <MoviesTab />
-  </div>
+  </motion.div>
+</div>
     </motion.div>
   )}
 
