@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Eye, Star, Film, Tv, Heart, ThumbsUp, X, Sparkles, Info, Users, Camera, Clapperboard, ChevronDown, ChevronUp, ChevronRight, Search, LayoutGrid, Clock3, EyeIcon, Circle, XCircle, Trophy, ArrowUpDown, } from 'lucide-react'
+import { Eye, Star, Film, Tv, Heart, ThumbsUp, X, Sparkles, Info, Users, Camera, Clapperboard, ChevronDown, ChevronUp, ChevronRight, Search, LayoutGrid, Clock3, EyeIcon, Circle, XCircle, Trophy, ArrowUpDown, Calendar, LayoutList } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { createPortal } from 'react-dom'
 
@@ -59,6 +59,24 @@ export default function MoviesTab() {
   const [typeFilter, setTypeFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
   const [expandedOverview, setExpandedOverview] = useState(false)
+
+  const [genreFilter, setGenreFilter] =
+  useState('all')
+
+const [sortBy, setSortBy] =
+  useState<
+    'rating-desc' |
+    'rating-asc' |
+    'recent' |
+    'oldest' |
+    'az'
+  >('rating-desc')
+
+const [genreOpen, setGenreOpen] =
+  useState(false)
+
+const [sortOpen, setSortOpen] =
+  useState(false)
 
   useEffect(() => {
   if (selectedItem) {
@@ -206,27 +224,139 @@ const creator =
     items.length > 0
       ? (items.reduce((acc, item) => acc + (item.customRating || 0), 0) / items.length).toFixed(1)
       : '0.0'
-const filteredItems = items.filter((item: any) => {
-  const matchesSearch =
-    (item.title || item.name)
-      ?.toLowerCase()
-      .includes(search.toLowerCase()) ||
-    item.overview?.toLowerCase().includes(search.toLowerCase())
 
-  const matchesType =
-    typeFilter === 'all'
-      ? true
-      : typeFilter === 'movie'
-      ? item.media_type === 'movie'
-      : item.media_type === 'tv'
+      const availableGenres = Array.from(
+  new Set(
+    items.flatMap((item) =>
+      (item.genres ?? []).map(
+        (genre) =>
+          genreTranslations[genre.name] ||
+          genre.name,
+      ),
+    ),
+  ),
+).sort((a, b) =>
+  a.localeCompare(b, 'pt-BR'),
+)
 
-  const matchesStatus =
-    statusFilter === 'all'
-      ? true
-      : item.status === statusFilter
+const filteredItems = items
+  .filter((item: TMDBItem) => {
+    const normalizedSearch =
+      search.trim().toLowerCase()
 
-  return matchesSearch && matchesType && matchesStatus
-})
+    const title =
+      (item.title || item.name || '')
+        .toLowerCase()
+
+    const overview =
+      (item.overview || '').toLowerCase()
+
+    const director =
+      (item.director || '').toLowerCase()
+
+    const creator =
+      (item.creator || '').toLowerCase()
+
+    const genres = (item.genres ?? []).map(
+      (genre) =>
+        genreTranslations[genre.name] ||
+        genre.name,
+    )
+
+    const matchesSearch =
+      !normalizedSearch ||
+      title.includes(normalizedSearch) ||
+      overview.includes(normalizedSearch) ||
+      director.includes(normalizedSearch) ||
+      creator.includes(normalizedSearch) ||
+      genres.some((genre) =>
+        genre
+          .toLowerCase()
+          .includes(normalizedSearch),
+      )
+
+    const matchesType =
+      typeFilter === 'all'
+        ? true
+        : typeFilter === 'movie'
+          ? item.media_type === 'movie'
+          : item.media_type === 'tv'
+
+    const matchesStatus =
+      statusFilter === 'all'
+        ? true
+        : item.status === statusFilter
+
+    const matchesGenre =
+      genreFilter === 'all'
+        ? true
+        : genres.includes(genreFilter)
+
+    return (
+      matchesSearch &&
+      matchesType &&
+      matchesStatus &&
+      matchesGenre
+    )
+  })
+  .sort((a, b) => {
+    switch (sortBy) {
+      case 'rating-asc':
+        return (
+          (a.customRating ?? 0) -
+          (b.customRating ?? 0)
+        )
+
+      case 'recent': {
+        const dateA = new Date(
+          a.release_date ||
+            a.first_air_date ||
+            '1900-01-01',
+        ).getTime()
+
+        const dateB = new Date(
+          b.release_date ||
+            b.first_air_date ||
+            '1900-01-01',
+        ).getTime()
+
+        return dateB - dateA
+      }
+
+      case 'oldest': {
+        const dateA = new Date(
+          a.release_date ||
+            a.first_air_date ||
+            '9999-12-31',
+        ).getTime()
+
+        const dateB = new Date(
+          b.release_date ||
+            b.first_air_date ||
+            '9999-12-31',
+        ).getTime()
+
+        return dateA - dateB
+      }
+
+      case 'az':
+        return (
+          a.title ||
+          a.name ||
+          ''
+        ).localeCompare(
+          b.title || b.name || '',
+          'pt-BR',
+        )
+
+      case 'rating-desc':
+      default:
+        return (
+          (b.customRating ?? 0) -
+          (a.customRating ?? 0)
+        )
+    }
+  })
 
   return (
     <div>
@@ -457,7 +587,7 @@ const filteredItems = items.filter((item: any) => {
 
         <button
           onClick={() => setTypeFilter('all')}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium transition-all ${
             typeFilter === 'all'
               ? 'bg-background text-foreground shadow-sm'
               : 'text-muted-foreground hover:text-foreground'
@@ -469,7 +599,7 @@ const filteredItems = items.filter((item: any) => {
 
         <button
           onClick={() => setTypeFilter('movie')}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium transition-all ${
             typeFilter === 'movie'
               ? 'bg-background text-foreground shadow-sm'
               : 'text-muted-foreground hover:text-foreground'
@@ -481,7 +611,7 @@ const filteredItems = items.filter((item: any) => {
 
         <button
           onClick={() => setTypeFilter('series')}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium transition-all ${
             typeFilter === 'series'
               ? 'bg-background text-foreground shadow-sm'
               : 'text-muted-foreground hover:text-foreground'
@@ -498,7 +628,7 @@ const filteredItems = items.filter((item: any) => {
 
         <button
           onClick={() => setStatusFilter('all')}
-          className={`flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold transition-all ${
+          className={`flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium transition-all ${
             statusFilter === 'all'
               ? 'bg-background text-foreground shadow-sm'
               : 'text-muted-foreground hover:text-foreground'
@@ -510,7 +640,7 @@ const filteredItems = items.filter((item: any) => {
 
         <button
           onClick={() => setStatusFilter('assistido')}
-          className={`flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold transition-all ${
+          className={`flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium transition-all ${
             statusFilter === 'assistido'
               ? 'bg-background text-foreground shadow-sm'
               : 'text-muted-foreground hover:text-foreground'
@@ -522,7 +652,7 @@ const filteredItems = items.filter((item: any) => {
 
         <button
           onClick={() => setStatusFilter('assistindo')}
-          className={`flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold transition-all ${
+          className={`flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium transition-all ${
             statusFilter === 'assistindo'
               ? 'bg-background text-foreground shadow-sm'
               : 'text-muted-foreground hover:text-foreground'
@@ -534,7 +664,7 @@ const filteredItems = items.filter((item: any) => {
 
         <button
           onClick={() => setStatusFilter('pretendo')}
-          className={`flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold transition-all ${
+          className={`flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium transition-all ${
             statusFilter === 'pretendo'
               ? 'bg-background text-foreground shadow-sm'
               : 'text-muted-foreground hover:text-foreground'
@@ -546,7 +676,7 @@ const filteredItems = items.filter((item: any) => {
 
         <button
           onClick={() => setStatusFilter('dropado')}
-          className={`flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold transition-all ${
+          className={`flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium transition-all ${
             statusFilter === 'dropado'
               ? 'bg-background text-foreground shadow-sm'
               : 'text-muted-foreground hover:text-foreground'
@@ -562,40 +692,318 @@ const filteredItems = items.filter((item: any) => {
 
   <div className="flex flex-wrap items-center gap-2">
 
-    <div className="relative">
-      <button className="flex items-center gap-1.5 px-3 py-0.5 rounded-lg text-[11px] font-semibold transition-all border bg-secondary/40 text-muted-foreground border-border/50 hover:text-foreground hover:border-border">
-        <LayoutGrid className="w-3 h-3" />
-
-        Gênero
-
-        <ChevronDown className="w-3 h-3 transition-transform" />
-      </button>
-    </div>
-
-    <div className="w-px h-5 bg-border/50 hidden sm:block" />
-
-    <div className="relative">
-      <button className="flex items-center gap-1.5 px-3 py-0.5 rounded-lg bg-secondary/40 border border-border/50 text-[11px] font-semibold text-muted-foreground hover:text-foreground hover:border-border transition-all">
-        <ArrowUpDown className="w-3 h-3" />
-
-        Maior nota
-
-        <ChevronDown className="w-3 h-3 transition-transform" />
-      </button>
-    </div>
-
-  </div>
-
-  {(search ||
-    typeFilter !== 'all' ||
-    statusFilter !== 'all') && (
+  {/* GÊNERO */}
+  <div className="relative">
     <button
       type="button"
       onClick={() => {
-        setSearch('')
-        setTypeFilter('all')
-        setStatusFilter('all')
+        setGenreOpen((current) => !current)
+        setSortOpen(false)
       }}
+      className={`
+        flex items-center gap-1.5
+        rounded-lg border px-3 py-0.5
+        text-[11px] font-medium
+        transition-all
+        ${
+          genreFilter !== 'all'
+            ? `
+              border-[#b5825f]/50
+              bg-[#b5825f]/10
+              text-[#b5825f]
+            `
+            : `
+              border-border/50
+              bg-secondary/40
+              text-muted-foreground
+              hover:border-border
+              hover:text-foreground
+            `
+        }
+      `}
+    >
+      <LayoutGrid className="h-3 w-3" />
+
+      {genreFilter === 'all'
+        ? 'Gênero'
+        : genreFilter}
+
+      <ChevronDown
+        className={`
+          h-3 w-3
+          transition-transform duration-200
+          ${genreOpen ? 'rotate-180' : ''}
+        `}
+      />
+    </button>
+
+    {genreOpen && (
+      <>
+        {/* Clique fora fecha */}
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setGenreOpen(false)}
+        />
+
+        <div
+          className="
+            absolute left-0 top-full z-50
+            mt-1 max-h-56 w-48
+            overflow-y-auto
+            rounded-xl border border-border
+            bg-[#120c07] p-1
+            shadow-xl shadow-black/20
+          "
+        >
+          <button
+            type="button"
+            onClick={() => {
+              setGenreFilter('all')
+              setGenreOpen(false)
+            }}
+            className={`
+              w-full rounded-lg
+              px-3 py-1.5 text-left
+              text-[11px] font-medium
+              transition-colors
+              ${
+                genreFilter === 'all'
+                  ? 'bg-[#b5825f]/10 text-[#b5825f]'
+                  : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+              }
+            `}
+          >
+            Todos os gêneros
+          </button>
+
+          {availableGenres.map((genre) => (
+            <button
+              key={genre}
+              type="button"
+              onClick={() => {
+                setGenreFilter(genre)
+                setGenreOpen(false)
+              }}
+              className={`
+                w-full rounded-lg
+                px-3 py-1.5 text-left
+                text-[11px] font-medium
+                transition-colors
+                ${
+                  genreFilter === genre
+                    ? 'bg-[#b5825f]/10 text-[#b5825f]'
+                    : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+                }
+              `}
+            >
+              {genre}
+            </button>
+          ))}
+        </div>
+      </>
+    )}
+  </div>
+
+
+  <div className="hidden h-5 w-px bg-border/50 sm:block" />
+
+
+  {/* ORDENAÇÃO */}
+  <div className="relative">
+    <button
+      type="button"
+      onClick={() => {
+        setSortOpen((current) => !current)
+        setGenreOpen(false)
+      }}
+      className={`
+        flex items-center gap-1.5
+        rounded-lg border px-3 py-0.5
+        text-[11px] font-medium
+        transition-all
+        ${
+          sortBy !== 'rating-desc'
+            ? `
+              border-[#b5825f]/50
+              bg-[#b5825f]/10
+              text-[#b5825f]
+            `
+            : `
+              border-border/50
+              bg-secondary/40
+              text-muted-foreground
+              hover:border-border
+              hover:text-foreground
+            `
+        }
+      `}
+    >
+      <ArrowUpDown className="h-3 w-3" />
+
+      {sortBy === 'rating-desc' && 'Maior nota'}
+      {sortBy === 'rating-asc' && 'Menor nota'}
+      {sortBy === 'recent' && 'Mais recente'}
+      {sortBy === 'oldest' && 'Mais antigo'}
+      {sortBy === 'az' && 'A–Z'}
+
+      <ChevronDown
+        className={`
+          h-3 w-3
+          transition-transform duration-200
+          ${sortOpen ? 'rotate-180' : ''}
+        `}
+      />
+    </button>
+
+    {sortOpen && (
+      <>
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setSortOpen(false)}
+        />
+          <div
+  className="
+    absolute left-0 top-full z-50
+    mt-1 w-40
+    rounded-xl
+    border border-border
+    bg-[#120c07]
+    p-1
+    shadow-xl shadow-black/20
+  "
+>
+  <button
+    type="button"
+    onClick={() => {
+      setSortBy('rating-desc')
+      setSortOpen(false)
+    }}
+    className={`
+      flex w-full items-center gap-2
+      rounded-lg px-3 py-0.5
+      text-[11px] font-medium
+      transition-colors
+      ${
+        sortBy === 'rating-desc'
+          ? 'bg-[#b5825f]/10 text-[#b5825f]'
+          : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+      }
+    `}
+  >
+    <Star className="h-3 w-3 shrink-0" />
+    Maior nota
+  </button>
+
+  <button
+    type="button"
+    onClick={() => {
+      setSortBy('rating-asc')
+      setSortOpen(false)
+    }}
+    className={`
+      flex w-full items-center gap-2
+      rounded-lg px-3 py-0.5
+      text-[11px] font-medium
+      transition-colors
+      ${
+        sortBy === 'rating-asc'
+          ? 'bg-[#b5825f]/10 text-[#b5825f]'
+          : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+      }
+    `}
+  >
+    <Star className="h-3 w-3 shrink-0" />
+    Menor nota
+  </button>
+
+  <button
+    type="button"
+    onClick={() => {
+      setSortBy('recent')
+      setSortOpen(false)
+    }}
+    className={`
+      flex w-full items-center gap-2
+      rounded-lg px-3 py-0.5
+      text-[11px] font-medium
+      transition-colors
+      ${
+        sortBy === 'recent'
+          ? 'bg-[#b5825f]/10 text-[#b5825f]'
+          : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+      }
+    `}
+  >
+    <Calendar className="h-3 w-3 shrink-0" />
+    Mais recente
+  </button>
+
+  <button
+    type="button"
+    onClick={() => {
+      setSortBy('oldest')
+      setSortOpen(false)
+    }}
+    className={`
+      flex w-full items-center gap-2
+      rounded-lg px-3 py-0.5
+      text-[11px] font-medium
+      transition-colors
+      ${
+        sortBy === 'oldest'
+          ? 'bg-[#b5825f]/10 text-[#b5825f]'
+          : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+      }
+    `}
+  >
+    <Calendar className="h-3 w-3 shrink-0" />
+    Mais antigo
+  </button>
+
+  <button
+    type="button"
+    onClick={() => {
+      setSortBy('az')
+      setSortOpen(false)
+    }}
+    className={`
+      flex w-full items-center gap-2
+      rounded-lg px-3 py-0.5
+      text-[11px] font-medium
+      transition-colors
+      ${
+        sortBy === 'az'
+          ? 'bg-[#b5825f]/10 text-[#b5825f]'
+          : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+      }
+    `}
+  >
+    <LayoutList className="h-3 w-3 shrink-0" />
+    A–Z
+  </button>
+</div>
+      </>
+    )}
+  </div>
+
+</div>
+
+  {(search ||
+  typeFilter !== 'all' ||
+  statusFilter !== 'all' ||
+  genreFilter !== 'all' ||
+  sortBy !== 'rating-desc') && (
+    <button
+      type="button"
+      onClick={() => {
+  setSearch('')
+  setTypeFilter('all')
+  setStatusFilter('all')
+  setGenreFilter('all')
+  setSortBy('rating-desc')
+  setGenreOpen(false)
+  setSortOpen(false)
+}}
       className="
         absolute
         right-0

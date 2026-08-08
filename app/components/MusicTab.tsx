@@ -113,6 +113,12 @@ const manualArtistImages: Record<string, string> = {
 
   'Worm':
     'https://i.scdn.co/image/ab67616d0000e1a3a135b1675cb2d905dfb8862d',
+
+  'Lucille':
+    'https://i.scdn.co/image/ab6761610000101f1b30f31d1bd6ccab66983566',
+
+  'jades':
+    'https://i.scdn.co/image/ab6761610000939bf7db1bf6fb82ec107aaa6107',
 }
 
 const manualAlbumImages: Record<string, string> = {
