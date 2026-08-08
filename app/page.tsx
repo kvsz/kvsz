@@ -2104,6 +2104,7 @@ function NitroModal({
   discordData,
   avatarUrl,
   avatarDecoration,
+  discordBanner,
   getStatusColor,
   setIgModalOpen,
   setRobloxModalOpen,
@@ -2198,10 +2199,22 @@ const [nitroTooltipOpen, setNitroTooltipOpen] =
             }}
           >
             <div className="relative h-28 overflow-hidden rounded-t-2xl">
-              <div className="h-full bg-gradient-to-br from-[#b5825f66] via-[#a15d3e4D] to-[#221812]">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent)]"></div>
-              </div>
-            </div>
+  {discordBanner ? (
+    <img
+      src={discordBanner}
+      alt=""
+      draggable={false}
+      className="
+        h-full w-full
+        select-none object-cover
+      "
+    />
+  ) : (
+    <div className="h-full bg-gradient-to-br from-[#b5825f66] via-[#a15d3e4D] to-[#221812]">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent)]"></div>
+    </div>
+  )}
+</div>
 
             <div className="px-6 pb-6">
               <div className="flex items-end justify-between -mt-12 mb-4">
@@ -2267,11 +2280,12 @@ const [nitroTooltipOpen, setNitroTooltipOpen] =
                 
                 <div
   className="
-    relative z-50
-    flex items-center gap-1.5
-    rounded-lg bg-[#221812]/80
-    px-3 py-2
-  "
+  absolute z-50
+  right-6 top-[94px]
+  flex items-center gap-1.5
+  rounded-lg bg-[#221812]/80
+  px-3 py-2
+"
   style={{
     transform: 'translateZ(0px)',
     transition: 'transform 0.3s ease-out',
@@ -2768,13 +2782,64 @@ const [nitroTooltipOpen, setNitroTooltipOpen] =
     const [entrou, setEntrou] = useState(false)
     
     
-    const [discordData, setDiscordData] = useState<LanyardData | null>(null)
-    const [ultimaMusica, setUltimaMusica] = useState<SpotifyData | null>(null)
-    const [igModalOpen, setIgModalOpen] = useState(false)
-    const [robloxModalOpen, setRobloxModalOpen] = useState(false)
-    const [activeTab, setActiveTab] = useState<'home' | 'sobre' | 'lazer' | 'amigos'>('home')
-    const [lazerTab, setLazerTab] = useState<'musica' | 'filmes'>('musica')
-    const [lazerSelectedTab, setLazerSelectedTab] =
+    const [discordData, setDiscordData] =
+  useState<LanyardData | null>(null)
+
+const [discordBanner, setDiscordBanner] =
+  useState<string | null>(null)
+
+const [ultimaMusica, setUltimaMusica] =
+  useState<SpotifyData | null>(null)
+
+const [igModalOpen, setIgModalOpen] =
+  useState(false)
+
+const [robloxModalOpen, setRobloxModalOpen] =
+  useState(false)
+
+const [activeTab, setActiveTab] =
+  useState<'home' | 'sobre' | 'lazer' | 'amigos'>(
+    'home',
+  )
+
+const [lazerTab, setLazerTab] =
+  useState<'musica' | 'filmes'>('musica')
+
+const [lazerSelectedTab, setLazerSelectedTab] =
+  useState<'musica' | 'filmes'>('musica')
+
+useEffect(() => {
+  const loadDiscordBanner = async () => {
+    try {
+      const response = await fetch(
+        '/api/discord-profile',
+        {
+          cache: 'no-store',
+        },
+      )
+
+      if (!response.ok) {
+        setDiscordBanner(null)
+        return
+      }
+
+      const data = await response.json()
+
+      setDiscordBanner(
+        data.bannerUrl ?? null,
+      )
+    } catch (error) {
+      console.error(
+        'Erro ao carregar banner do Discord:',
+        error,
+      )
+
+      setDiscordBanner(null)
+    }
+  }
+
+  loadDiscordBanner()
+}, [])
   useState<'musica' | 'filmes'>('musica')
     const [lazerDirection, setLazerDirection] =
   useState(1)
@@ -3082,20 +3147,20 @@ useEffect(() => {
         className="relative z-10 h-screen md:min-h-screen flex flex-col items-center justify-center px-14 pt-20 md:pt-22 pb-20 md:pb-32"
       >
         <HomeContent
-        
-          cardRef={cardRef}
-          handleMouseMove={handleMouseMove}
-          handleMouseLeave={handleMouseLeave}
-          isHovering={isHovering}
-          rotate={rotate}
-          discordData={discordData}
-          avatarUrl={avatarUrl}
-          avatarDecoration={avatarDecoration}
-          getStatusColor={getStatusColor}
-          musicaAtual={musicaAtual}
-          setIgModalOpen={setIgModalOpen}
-          setRobloxModalOpen={setRobloxModalOpen}
-        />
+  cardRef={cardRef}
+  handleMouseMove={handleMouseMove}
+  handleMouseLeave={handleMouseLeave}
+  isHovering={isHovering}
+  rotate={rotate}
+  discordData={discordData}
+  avatarUrl={avatarUrl}
+  avatarDecoration={avatarDecoration}
+  discordBanner={discordBanner}
+  getStatusColor={getStatusColor}
+  musicaAtual={musicaAtual}
+  setIgModalOpen={setIgModalOpen}
+  setRobloxModalOpen={setRobloxModalOpen}
+/>
       </motion.div>
     )}
 
