@@ -1,6 +1,11 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import {
+  useEffect,
+  useState,
+  useRef,
+  type FormEvent,
+} from 'react'
 import { toast } from 'sonner'
 import * as Slider from '@radix-ui/react-slider'
 
@@ -75,11 +80,41 @@ const {
 
 const [seekPreview, setSeekPreview] = useState(0)
 
+const [searchOpen, setSearchOpen] = useState(false)
+
+const [searchQuery, setSearchQuery] = useState('')
+
+const [searchLoading, setSearchLoading] =
+  useState(false)
+
+const [manualVideo, setManualVideo] =
+  useState<YouTubeResult | null>(null)
+
+const searchInputRef =
+  useRef<HTMLInputElement | null>(null)
+
+  useEffect(() => {
+  if (!searchOpen) return
+
+  requestAnimationFrame(() => {
+    searchInputRef.current?.focus()
+  })
+}, [searchOpen])
+
   /*
    * Sempre que a música do Spotify mudar,
    * procura o vídeo correspondente.
    */
+
   useEffect(() => {
+  // Se o visitante escolheu uma música manualmente,
+  // não deixa o Spotify sobrescrever essa música.
+  if (manualVideo) {
+    return
+  }
+
+  // Se você não estiver ouvindo nada no Spotify,
+  // limpa o vídeo sincronizado.
   if (!spotify.song || !spotify.artist) {
     setVideo(null)
     return
@@ -90,59 +125,64 @@ const [seekPreview, setSeekPreview] = useState(0)
 
   const controller = new AbortController()
 
-    const searchVideo = async () => {
-      setLoading(true)
-      setError(null)
+  const searchVideo = async () => {
+    setLoading(true)
+    setError(null)
 
-      try {
-        const response = await fetch(
-  `/api/youtube-search?${new URLSearchParams({
-    song,
-    artist,
-  }).toString()}`,
-  {
-    signal: controller.signal,
-  },
-)
+    try {
+      const response = await fetch(
+        `/api/youtube-search?${new URLSearchParams({
+          song,
+          artist,
+        }).toString()}`,
+        {
+          signal: controller.signal,
+        },
+      )
 
-        if (!response.ok) {
-          throw new Error(
-            'Não foi possível encontrar a música.',
-          )
-        }
-
-        const data: YouTubeResult =
-          await response.json()
-
-        setVideo(data)
-      } catch (error) {
-        if (
-          error instanceof DOMException &&
-          error.name === 'AbortError'
-        ) {
-          return
-        }
-
-        console.error(
-          'Erro ao pesquisar vídeo:',
-          error,
+      if (!response.ok) {
+        throw new Error(
+          'Não foi possível encontrar a música.',
         )
-
-        setVideo(null)
-        setError(
-          'Não foi possível encontrar o áudio.',
-        )
-      } finally {
-        setLoading(false)
       }
-    }
 
-    searchVideo()
+      const data: YouTubeResult =
+        await response.json()
 
-    return () => {
-      controller.abort()
+      setVideo(data)
+    } catch (error) {
+      if (
+        error instanceof DOMException &&
+        error.name === 'AbortError'
+      ) {
+        return
+      }
+
+      console.error(
+        'Erro ao pesquisar vídeo:',
+        error,
+      )
+
+      setVideo(null)
+
+      setError(
+        'Não foi possível encontrar o áudio.',
+      )
+    } finally {
+      setLoading(false)
     }
-  }, [spotify.song, spotify.artist])
+  }
+
+  searchVideo()
+
+  return () => {
+    controller.abort()
+  }
+}, [
+  spotify.song,
+  spotify.artist,
+  manualVideo,
+])
 
   /*
    * Quando o vídeo for encontrado e o player
@@ -150,6 +190,10 @@ const [seekPreview, setSeekPreview] = useState(0)
    * Ele ainda não começa a tocar.
    */
   useEffect(() => {
+  if (manualVideo) {
+    return
+  }
+
   if (!isReady || !video?.videoId) {
     return
   }
@@ -203,6 +247,7 @@ const [seekPreview, setSeekPreview] = useState(0)
     autoplay: false,
   })
 }, [
+  manualVideo,
   isReady,
   video?.videoId,
   loadVideo,
@@ -250,22 +295,135 @@ const [seekPreview, setSeekPreview] = useState(0)
       </div>
     ),
     {
-      duration: 3500,
-    },
+  id: 'now-playing',
+  duration: 3500,
+},
   )
 }
 
 const handleSearch = () => {
-  if (!spotify.song || !spotify.artist) {
+  setSearchOpen((current) => !current)
+  setError(null)
+}
+
+const handleManualSearch = async (
+  event: FormEvent<HTMLFormElement>,
+) => {
+  event.preventDefault()
+
+  const query = searchQuery.trim()
+
+  if (
+    !query ||
+    searchLoading
+  ) {
     return
   }
 
-  /*
-   * Buscar mostra o painel completo,
-   * mas não inicia sincronização automática.
-   */
+  if (!isReady) {
+    setError('O player ainda está carregando.')
+    return
+  }
+
+  setSearchLoading(true)
+  setError(null)
+
+  // A partir daqui a pessoa está ouvindo
+  // uma música escolhida por ela, e não
+  // acompanhando seu Spotify.
   setAutoSyncEnabled(false)
-  setPlayerActivated(true)
+  setIsSyncing(false)
+
+  try {
+    const response = await fetch(
+      `/api/youtube-search?${new URLSearchParams({
+        q: query,
+      }).toString()}`,
+      {
+        cache: 'no-store',
+      },
+    )
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(
+        data.error ??
+          'Não foi possível encontrar a música.',
+      )
+    }
+
+    const result: YouTubeResult = data
+
+    const loaded = loadVideo({
+      videoId: result.videoId,
+      startSeconds: 0,
+      autoplay: true,
+    })
+
+    if (!loaded) {
+      throw new Error(
+        'O player ainda não está pronto.',
+      )
+    }
+
+    setManualVideo(result)
+    setPlayerActivated(true)
+
+    // Igual à referência:
+    // depois de encontrar, recolhe a busca.
+    setSearchOpen(false)
+    setSearchQuery('')
+
+    toast.custom(
+  () => (
+    <div
+      className="
+        flex w-[356px] items-center gap-3
+        rounded-xl border border-[#291f18]
+        bg-[#120c07] p-4
+        text-[#ede3d6] shadow-xl
+      "
+    >
+      <img
+        src={result.thumbnail}
+        alt={result.title}
+        className="
+          h-14 w-14 flex-shrink-0
+          rounded-lg object-cover
+        "
+      />
+
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold">
+          Você está ouvindo agora
+        </p>
+
+        <p className="truncate text-xs text-[#8d7d6e]">
+          {result.channel ?? 'YouTube'}
+        </p>
+
+        <p className="truncate text-xs text-[#8d7d6e]">
+          {result.title}
+        </p>
+      </div>
+    </div>
+  ),
+  {
+    id: 'now-playing',
+    duration: 3500,
+  },
+)
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : 'Não foi possível buscar a música.'
+
+    setError(message)
+  } finally {
+    setSearchLoading(false)
+  }
 }
 
 const handleSynchronize = () => {
@@ -391,32 +549,39 @@ const handlePlayPause = () => {
     return
   }
 
-  /*
-   * Quando você estiver ouvindo Spotify,
-   * retoma sincronizado com a posição atual.
-   */
+  // Música escolhida manualmente pelo visitante:
+  // apenas continua normalmente.
+  if (manualVideo) {
+    play()
+    return
+  }
+
+  // Música sincronizada com seu Spotify:
   if (isLiveSync) {
     handleSynchronize()
     return
   }
 
-  /*
-   * Em música fallback/salva,
-   * continua do ponto em que foi pausada.
-   */
   play()
 }
 
 const isLiveSync =
-  spotify.isPlaying && !spotify.fallback
+  !manualVideo &&
+  spotify.isPlaying &&
+  !spotify.fallback
 
 const canSeek =
   !isLiveSync && safeDuration > 0
 
+  const displayVideo =
+  manualVideo ?? video
+
   const showPlayerContent =
   playerActivated &&
-  Boolean(spotify.song) &&
-  Boolean(spotify.artist)
+  Boolean(
+    manualVideo ||
+      (spotify.song && spotify.artist),
+  )
 
   const showActiveMinimized =
   autoSyncEnabled && isPlaying
@@ -519,10 +684,14 @@ const canSeek =
           <div className="relative flex-shrink-0">
             <img
               src={
-                video?.thumbnail ??
-                spotify.albumArt
-              }
-              alt={`Capa de ${spotify.song}`}
+  displayVideo?.thumbnail ??
+  spotify.albumArt
+}
+              alt={
+  displayVideo?.title ??
+  spotify.song ??
+  'Música'
+}
               className="
                 h-14 w-14 rounded-lg
                 border border-[#291f18]/70
@@ -570,7 +739,7 @@ const canSeek =
                 font-medium text-[#ede3d6]
               "
             >
-              {video?.title ?? spotify.song}
+              {displayVideo?.title ?? spotify.song}
             </h3>
 
             <p
@@ -579,27 +748,28 @@ const canSeek =
                 text-[#8d7d6e]
               "
             >
-              {video?.channel ??
-                spotify.artist}
+              {displayVideo?.channel ?? spotify.artist}
             </p>
 
-            <div
-  className="
-    flex items-center gap-1
-    px-1.5 py-1
-    bg-emerald-500/10
-    border border-emerald-500/20
-    rounded
-    w-fit
-    leading-none
-  "
->
-  <Wifi className="w-2 h-2 text-emerald-500" />
+            {!manualVideo && autoSyncEnabled && (
+  <div
+    className="
+      flex items-center gap-1
+      px-1.5 py-1
+      bg-emerald-500/10
+      border border-emerald-500/20
+      rounded
+      w-fit
+      leading-none
+    "
+  >
+    <Wifi className="w-2 h-2 text-emerald-500" />
 
-  <span className="text-[9px] leading-none font-medium text-emerald-500">
-    Sync
-  </span>
-</div>
+    <span className="text-[9px] leading-none font-medium text-emerald-500">
+      Sync
+    </span>
+  </div>
+)}
           </div>
         </div>
 
@@ -828,26 +998,22 @@ const canSeek =
           </button>
 
           <button
-            type="button"
-            onClick={handleSynchronize}
-            disabled={
-              !isReady ||
-              !video ||
-              loading
-            }
-            aria-label="Sincronizar novamente"
-            className="
-              flex h-6 w-6
-              items-center justify-center
-              rounded-lg text-[#8d7d6e]
-              transition-colors
-              hover:bg-[#221812]/80
-              hover:text-[#ede3d6]
-              disabled:opacity-40
-            "
-          >
-            <Search className="h-3 w-3" />
-          </button>
+  type="button"
+  onClick={handleSearch}
+  disabled={searchLoading}
+  aria-label="Buscar música"
+  className="
+    flex h-6 w-6
+    items-center justify-center
+    rounded-lg text-[#8d7d6e]
+    transition-colors
+    hover:bg-[#221812]/80
+    hover:text-[#ede3d6]
+    disabled:opacity-40
+  "
+>
+  <Search className="h-3 w-3" />
+</button>
         </div>
 
         {error && (
@@ -926,13 +1092,7 @@ const canSeek =
       <button
         type="button"
         onClick={handleSearch}
-        disabled={
-  !spotify.song ||
-  !spotify.artist ||
-  loading ||
-  !video ||
-  isSyncing
-}
+        disabled={searchLoading}
         className="
           flex h-8 w-full
           items-center justify-center
@@ -964,9 +1124,104 @@ const canSeek =
     )}
   </div>
 )}
+<AnimatePresence initial={false}>
+  {searchOpen && (
+    <motion.form
+      onSubmit={handleManualSearch}
+      initial={{
+        opacity: 0,
+        height: 0,
+        y: -4,
+      }}
+      animate={{
+        opacity: 1,
+        height: 'auto',
+        y: 0,
+      }}
+      exit={{
+        opacity: 0,
+        height: 0,
+        y: -4,
+      }}
+      transition={{
+        duration: 0.2,
+        ease: 'easeOut',
+      }}
+      className="overflow-hidden"
+    >
+      <div className="flex items-center gap-1.5 pt-2">
+        <input
+          ref={searchInputRef}
+          type="text"
+          value={searchQuery}
+          onChange={(event) =>
+            setSearchQuery(event.target.value)
+          }
+          placeholder="Buscar música..."
+          autoComplete="off"
+          className="
+            h-8 min-w-0 flex-1
+            rounded-lg
+            border border-[#291f18]
+            bg-[#080503]/60
+            px-2.5
+            text-[10px]
+            text-[#ede3d6]
+            outline-none
+            placeholder:text-[#8d7d6e]/60
+            transition-colors
+            focus:border-[#b5825f]/60
+          "
+        />
+
+        <button
+          type="submit"
+          disabled={
+            !searchQuery.trim() ||
+            searchLoading ||
+            !isReady
+          }
+          aria-label="Pesquisar música"
+          className="
+            flex h-8 w-8
+            flex-shrink-0
+            items-center justify-center
+            rounded-lg
+            bg-[#b5825f]
+            text-[#120c07]
+            transition-all
+            hover:bg-[#c18d68]
+            active:scale-95
+            disabled:cursor-not-allowed
+            disabled:opacity-40
+          "
+        >
+          {searchLoading ? (
+            <motion.span
+              animate={{ rotate: 360 }}
+              transition={{
+                duration: 0.7,
+                repeat: Infinity,
+                ease: 'linear',
+              }}
+              className="
+                h-3 w-3 rounded-full
+                border border-[#120c07]/30
+                border-t-[#120c07]
+              "
+            />
+          ) : (
+            <Search className="h-3.5 w-3.5" />
+          )}
+        </button>
+      </div>
+    </motion.form>
+  )}
+</AnimatePresence>
     </div>
   </div>
 </motion.div>
+
       )}
     </AnimatePresence>
 
