@@ -42,7 +42,13 @@ type Particle = {
   rotation2: number
 }
 
-export default function AnimatedBackground() {
+type AnimatedBackgroundProps = {
+  showRadials?: boolean
+}
+
+export default function AnimatedBackground({
+  showRadials = true,
+}: AnimatedBackgroundProps) {
   const [particles, setParticles] = useState<Particle[]>([])
 
   useEffect(() => {
@@ -97,25 +103,29 @@ export default function AnimatedBackground() {
       style={{ zIndex: 0 }}
     >
       {/* Círculos */}
-      <div
-        className="
-          absolute left-1/4 top-1/4
-          h-96 w-96 rounded-full blur-3xl
-        "
-        style={{
-          backgroundColor: '#b5825f0D',
-        }}
-      />
+{showRadials && (
+  <>
+    <div
+      className="
+        absolute left-1/4 top-1/4
+        h-96 w-96 rounded-full blur-3xl
+      "
+      style={{
+        backgroundColor: '#b5825f0D',
+      }}
+    />
 
-      <div
-        className="
-          absolute bottom-1/4 right-1/4
-          h-80 w-80 rounded-full blur-3xl
-        "
-        style={{
-          backgroundColor: '#a15d3e0D',
-        }}
-      />
+    <div
+      className="
+        absolute bottom-1/4 right-1/4
+        h-80 w-80 rounded-full blur-3xl
+      "
+      style={{
+        backgroundColor: '#a15d3e0D',
+      }}
+    />
+  </>
+)}
 
       {/* Símbolos */}
       {particles.map((particle) => (

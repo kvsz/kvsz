@@ -6,6 +6,12 @@
   --background: lab(1.55178% .640653 1.00339);
   --foreground: lab(90.7505% 1.8031 7.45089);
 
+  --card: lab(3.6651% 1.95304 2.51268);
+  --card-foreground: lab(90.7505% 1.8031 7.45089);
+
+  --popover: lab(2.45779% 1.18386 1.55427);
+  --popover-foreground: lab(90.7505% 1.8031 7.45089);
+
   --primary: lab(59.0642% 17.2913 27.0713);
   --primary-foreground: lab(1.55178% .640653 1.00339);
 
@@ -18,21 +24,37 @@
   --accent: lab(47.1415% 26.2977 30.4822);
   --accent-foreground: lab(94.217% .869393 3.70355);
 
+  --destructive: lab(45.7636% 63.3818 40.1799);
+  --destructive-foreground: lab(94.217% .869393 3.70355);
+
   --border: lab(12.9251% 4.15897 6.54917);
-
-  --card: lab(5.22872% 2.51955 3.02221);
-  --card-foreground: lab(90.7505% 1.8031 7.45089);
-
-  --popover: lab(2.45779% 1.18386 1.55427);
-  --popover-foreground: lab(90.7505% 1.8031 7.45089);
-
   --input: lab(7.17475% 2.9778 4.01724);
   --ring: lab(47.4458% 17.612 27.6482);
+
+  --chart-1: lab(58.6073% 31.5978 36.6851);
+  --chart-2: lab(53.6498% 9.94825 43.6108);
+  --chart-3: lab(47.1579% 23.1006 18.9068);
+  --chart-4: lab(64.7531% 24.381 45.5224);
+  --chart-5: lab(41.4302% 18.6028 10.2406);
+
+  --sidebar: lab(2.45779% 1.18386 1.55427);
+  --sidebar-foreground: lab(90.7505% 1.8031 7.45089);
+  --sidebar-primary: lab(59.0642% 17.2913 27.0713);
+  --sidebar-primary-foreground: lab(1.55178% .640653 1.00339);
+  --sidebar-accent: lab(9.42224% 4.6284 5.83762);
+  --sidebar-accent-foreground: lab(82.6048% 3.65719 10.9626);
+  --sidebar-border: lab(12.9251% 4.15897 6.54917);
+  --sidebar-ring: lab(47.4458% 17.612 27.6482);
+
+  --glow: lab(59.0642% 17.2913 27.0713 / 0.3);
 
   --surface: lab(5.22521% 2.43863 3.22101);
   --surface-hover: lab(9.44277% 4.20167 6.20367);
 
-  --glow: lab(59.0642% 17.2913 27.0713 / 0.3);
+  --online: lab(67.3528% -50.581 42.6409);
+  --idle: lab(71.1681% 11.7208 71.0541);
+  --dnd: lab(51.5803% 63.2457 38.9399);
+  --offline: lab(36.1328% 4.01397 6.40992);
 }
 
 @theme inline {
@@ -67,8 +89,34 @@
   --radius-sm: calc(var(--radius) - 4px);
   --radius-2xl: 1rem;
 
-  --font-sans: "Inter", "Inter Fallback", sans-serif;
+  --font-sans: var(--font-inter), sans-serif;
   --font-mono: "JetBrains Mono", monospace;
+
+  --color-destructive: var(--destructive);
+--color-destructive-foreground: var(--destructive-foreground);
+
+--color-chart-1: var(--chart-1);
+--color-chart-2: var(--chart-2);
+--color-chart-3: var(--chart-3);
+--color-chart-4: var(--chart-4);
+--color-chart-5: var(--chart-5);
+
+--color-sidebar: var(--sidebar);
+--color-sidebar-foreground: var(--sidebar-foreground);
+--color-sidebar-primary: var(--sidebar-primary);
+--color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+--color-sidebar-accent: var(--sidebar-accent);
+--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+--color-sidebar-border: var(--sidebar-border);
+--color-sidebar-ring: var(--sidebar-ring);
+
+--color-online: var(--online);
+--color-idle: var(--idle);
+--color-dnd: var(--dnd);
+--color-offline: var(--offline);
+
+--color-surface: var(--surface);
+--color-surface-hover: var(--surface-hover);
 }
 
 * {
@@ -78,46 +126,26 @@
 html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  scrollbar-gutter: stable;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: "Inter", "Inter Fallback", sans-serif;
 }
 
-html::-webkit-scrollbar,
-body::-webkit-scrollbar,
-*::-webkit-scrollbar {
+::-webkit-scrollbar {
   width: 8px;
-  height: 6px;
+  height: 8px;
 }
 
-html::-webkit-scrollbar-track,
-body::-webkit-scrollbar-track,
-*::-webkit-scrollbar-track {
-  background: transparent;
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
 }
 
-html::-webkit-scrollbar-thumb,
-body::-webkit-scrollbar-thumb,
-*::-webkit-scrollbar-thumb {
-  background: #291f18;
-  border-radius: 999px;
-}
-
-html::-webkit-scrollbar-thumb:hover,
-body::-webkit-scrollbar-thumb:hover,
-*::-webkit-scrollbar-thumb:hover {
-  background: #8d7d6e;
-}
-
-html::-webkit-scrollbar-button,
-body::-webkit-scrollbar-button,
-*::-webkit-scrollbar-button {
-  display: none;
-  width: 0;
-  height: 0;
+::-webkit-scrollbar-track {
+  background: var(--background);
 }
 
 .modal-scrollbar::-webkit-scrollbar-track {

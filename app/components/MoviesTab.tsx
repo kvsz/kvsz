@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Eye, Star, Film, Tv, Heart, ThumbsUp, X, Sparkles, Info, Users, Camera, Clapperboard, ChevronDown, ChevronUp, ChevronRight, Search, LayoutGrid, Clock3, EyeIcon, Circle, XCircle, Trophy, ArrowUpDown, Calendar, LayoutList } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { createPortal } from 'react-dom'
 
 interface TMDBItem {
@@ -21,7 +21,12 @@ interface TMDBItem {
   status?: string
   media_type?: string
   type?: string
-  cast?: string[]
+  cast?: {
+  id: number
+  name: string
+  character?: string
+  profile_path?: string | null
+}[]
   director?: string
   creator?: string
   original_title?: string
@@ -37,6 +42,7 @@ interface TMDBItem {
 const genreTranslations: Record<string, string> = {
   'Sci-Fi & Fantasy': 'Ficção Científica',
   'Action & Adventure': 'Ação e Aventura',
+  'Ficção científica': 'Ficção Científica',
   Action: 'Ação',
   Adventure: 'Aventura',
   Crime: 'Crime',
@@ -186,7 +192,13 @@ const detailsData = await detailsResponse.json()
 
 const creditsData = await creditsResponse.json()
 
-const cast = creditsData.cast?.slice(0, 6).map((person: any) => person.name) || []
+const cast =
+  creditsData.cast?.slice(0, 10).map((person: any) => ({
+    id: person.id,
+    name: person.name,
+    character: person.character || '',
+    profile_path: person.profile_path || null,
+  })) || []
 
 const director =
   item.type === 'movie'
@@ -264,16 +276,8 @@ const filteredItems = items
     )
 
     const matchesSearch =
-      !normalizedSearch ||
-      title.includes(normalizedSearch) ||
-      overview.includes(normalizedSearch) ||
-      director.includes(normalizedSearch) ||
-      creator.includes(normalizedSearch) ||
-      genres.some((genre) =>
-        genre
-          .toLowerCase()
-          .includes(normalizedSearch),
-      )
+  !normalizedSearch ||
+  title.includes(normalizedSearch)
 
     const matchesType =
       typeFilter === 'all'
@@ -457,7 +461,7 @@ const filteredItems = items
 <div className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-red-500 via-[#b5825f] to-transparent opacity-80 z-20" />
 
                   <div className="absolute top-4 right-4 z-20 opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
-  <div className="flex items-center gap-1.5 px-3 py-0 rounded-full bg-black/40 border border-white/15 text-white text-[11px] font-bold backdrop-blur-sm">
+  <div className="flex items-center gap-1.5 px-3 py-0 rounded-full bg-black/40 border border-white/15 text-foreground text-[11px] font-bold backdrop-blur-sm">
     <Info className="w-3 h-3" />
     Detalhes
   </div>
@@ -763,7 +767,7 @@ const filteredItems = items
             }}
             className={`
               w-full rounded-lg
-              px-3 py-1.5 text-left
+              px-3 py-0.5 text-left
               text-[11px] font-medium
               transition-colors
               ${
@@ -786,7 +790,7 @@ const filteredItems = items
               }}
               className={`
                 w-full rounded-lg
-                px-3 py-1.5 text-left
+                px-3 py-0.5 text-left
                 text-[11px] font-medium
                 transition-colors
                 ${
@@ -1035,7 +1039,8 @@ const filteredItems = items
   transition={{ delay: 0.2, duration: 0.5 }}
   className="grid grid-cols-1 lg:grid-cols-2 gap-4"
 >
-  {filteredItems.map((item) => {
+  <AnimatePresence mode="popLayout">
+    {filteredItems.map((item) => {
     return (
       <motion.div
         key={item.id}
@@ -1065,7 +1070,7 @@ const filteredItems = items
     </div>
 
     <div className="absolute top-2 right-2">
-      <span className="px-2 py-0.5 rounded-md bg-black/50 backdrop-blur-sm text-white text-[10px] font-bold">
+      <span className="px-2 py-0.5 rounded-md bg-black/50 backdrop-blur-sm text-foreground text-[10px] font-bold">
         {item.type === 'movie'
           ? `${Math.floor((item.runtime || 0) / 60)}h ${(item.runtime || 0) % 60}m`
           : `${item.number_of_seasons} temp`}
@@ -1121,7 +1126,7 @@ const filteredItems = items
 
         <div className="flex items-center gap-2.5 mb-2">
           <div className="relative w-11 h-11 rounded-xl flex items-center justify-center ring-2 shadow-lg bg-emerald-500 ring-emerald-500/30">
-            <span className="text-white text-base font-black leading-none">
+            <span className="text-foreground text-base font-black leading-none">
               {item.customRating}
             </span>
           </div>
@@ -1203,6 +1208,7 @@ const filteredItems = items
       </motion.div>
     )
   })}
+  </AnimatePresence>
 </motion.div>
 
       {selectedItem && createPortal((
@@ -1233,7 +1239,7 @@ const filteredItems = items
 
         <button
           onClick={() => setSelectedItem(null)}
-          className="absolute top-3 right-3 z-20 w-9 h-9 rounded-full bg-black/40 backdrop-blur-md hover:bg-black/60 text-white flex items-center justify-center transition-all hover:scale-110 border border-white/10"
+          className="absolute top-3 right-3 z-20 w-9 h-9 rounded-full bg-black/40 backdrop-blur-md hover:bg-black/60 text-foreground flex items-center justify-center transition-all hover:scale-110 border border-white/10"
         >
           <X className="w-4 h-4" />
         </button>
@@ -1252,7 +1258,7 @@ const filteredItems = items
               </div>
 
               <div className="absolute -bottom-2 -right-2 w-11 h-11 rounded-xl flex items-center justify-center border-2 border-background z-10 ring-2 shadow-lg bg-emerald-500 ring-emerald-500/30">
-                <span className="text-white text-sm font-black">
+                <span className="text-foreground text-sm font-black">
                   {selectedItem.customRating}
                 </span>
               </div>
@@ -1276,7 +1282,7 @@ const filteredItems = items
   {selectedItem.type === 'movie' ? 'Filme' : 'Série'}
 </span>
 
-                <span className="text-[11px] text-white/50 font-medium">
+                <span className="text-[11px] text-foreground/50 font-medium">
   {selectedItem.type === 'movie'
     ? (selectedItem.release_date || '').slice(0, 4)
     : `${(selectedItem.first_air_date || '').slice(0, 4)}-${(selectedItem.last_air_date || '').slice(0, 4)}`}
@@ -1285,15 +1291,15 @@ const filteredItems = items
                 <Heart className="w-3.5 h-3.5 text-red-400 fill-red-400" />
               </div>
 
-              <h2 className="text-xl sm:text-2xl font-black text-white leading-tight line-clamp-2 tracking-tight">
+              <h2 className="text-xl sm:text-2xl font-black text-foreground leading-tight line-clamp-2 tracking-tight">
                 {selectedItem.title || selectedItem.name}
               </h2>
 
-              <p className="text-[11px] text-white/30 italic">
+              <p className="text-[11px] text-foreground/30 italic">
   {selectedItem.original_title || selectedItem.original_name}
 </p>
 
-<div className="flex flex-wrap items-center gap-2 text-white/50 text-xs">
+<div className="flex flex-wrap items-center gap-2 text-foreground/50 text-xs">
   <span className="font-medium">
   {selectedItem.genres
   ?.slice(0, 2)
@@ -1345,7 +1351,7 @@ const filteredItems = items
 })}
                 </div>
 
-                <span className="text-[10px] text-white/40 font-medium ml-1">
+                <span className="text-[10px] text-foreground/40 font-medium ml-1">
                   TMDb {selectedItem.vote_average.toFixed(1)}
                 </span>
               </div>
@@ -1445,8 +1451,8 @@ const filteredItems = items
     </h4>
 
     <div className="flex gap-4 overflow-x-auto pb-2">
-      {selectedItem.cast.map((name, index) => {
-        const initials = name
+      {selectedItem.cast.map((person) => {
+        const initials = person.name
           .split(' ')
           .map((part) => part[0])
           .join('')
@@ -1454,18 +1460,33 @@ const filteredItems = items
 
         return (
           <div
-            key={index}
-            className="flex flex-col items-center gap-1.5 flex-shrink-0 w-16"
+            key={person.id}
+            className="flex flex-col items-center flex-shrink-0 w-16 text-center"
           >
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border-2 border-border/40 shadow-sm">
-              <span className="text-xs font-bold text-primary/60">
-                {initials}
-              </span>
+            <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border-2 border-border/40 shadow-sm mb-1.5">
+              {person.profile_path ? (
+                <img
+                  src={`https://image.tmdb.org/t/p/w185${person.profile_path}`}
+                  alt={person.name}
+                  loading="lazy"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-xs font-bold text-primary/60">
+                  {initials}
+                </span>
+              )}
             </div>
 
-            <p className="text-[9px] font-semibold text-center line-clamp-2">
-              {name}
+            <p className="text-[9px] font-medium leading-tight line-clamp-2">
+              {person.name}
             </p>
+
+            {person.character && (
+              <p className="text-[8px] text-muted-foreground/60 line-clamp-1 mt-0.5">
+                {person.character}
+              </p>
+            )}
           </div>
         )
       })}

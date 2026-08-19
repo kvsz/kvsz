@@ -915,7 +915,7 @@ const canSeek =
     "
   />
 ) : (
-  <UsersRound className="mr-1 h-3 w-3" />
+  <UsersRound className="mr-1 h-4 w-4" />
 )}
 
 {isSyncing
@@ -946,7 +946,7 @@ const canSeek =
           disabled:opacity-40
         "
       >
-        <Search className="mr-1 h-3 w-3" />
+        <Search className="mr-1 h-4 w-4" />
         Buscar
       </button>
     </div>
@@ -989,7 +989,7 @@ const canSeek =
       fixed bottom-6 right-6 z-[9999]
       flex h-11 w-11
       items-center justify-center
-      rounded-xl bg-[#b5825f]
+      rounded-2xl bg-[#b5825f]
       text-[#120c07]
       shadow-lg
       cursor-pointer

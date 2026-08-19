@@ -2108,6 +2108,7 @@ function NitroModal({
   getStatusColor,
   setIgModalOpen,
   setRobloxModalOpen,
+  setActiveTab,
 }: any) {
     const spotify = useSpotify() // <- USA O HOOK AGORA
     const [profileModalOpen, setProfileModalOpen] = useState(false)
@@ -2149,19 +2150,26 @@ const [nitroTooltipOpen, setNitroTooltipOpen] =
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="text-2xl sm:text-4xl md:text- font-bold text-foreground mb-4 md:mb-13 text-balance text-center"
+          className="text-2xl sm:text-4xl md:text-5xl font-bold text-foreground mb-2 md:mb-3 text-balance"
           style={{
             fontFamily: '"Inter", "Inter Fallback", sans-serif',
-            fontSize: '48px',
             fontWeight: 700,
             WebkitFontSmoothing: 'antialiased',
-            lineHeight: '48px',
             transform: 'translateY(1px)',
             color: '#ede3d6'
           }}
         >
           07, can you do somethin' for me?
         </motion.h1>
+
+        <motion.p
+  initial={{ opacity: 0, y: -10 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
+  className="text-muted-foreground text-sm sm:text-lg max-w-md mx-auto text-pretty text-center mb-10"
+>
+  nothing less, nothing more
+</motion.p>
 
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
@@ -2672,13 +2680,35 @@ const [nitroTooltipOpen, setNitroTooltipOpen] =
 
           <div className="w-px h-6 mx-2" style={{ backgroundColor: '#291f18' }}></div>
 
-          <a href="#" className="text-sm flex items-center gap-1 group hover:text-[#ede3d6] transition-colors duration-150" style={{ color: '#8d7d6e' }}>
-            Conhecer mais
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-right w-4 h-4 group-hover:translate-x-1 transition-transform">
-              <path d="M5 12h14"></path>
-              <path d="m12 5 7 7-7 7"></path>
-            </svg>
-          </a>
+          <motion.button
+  type="button"
+  onClick={() => {
+    setActiveTab('sobre')
+    window.scrollTo({ top: 0, behavior: 'instant' })
+  }}
+  whileHover={{ x: 5 }}
+  className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer group px-4 py-2 rounded-lg hover:bg-secondary/50"
+>
+  <span className="text-sm font-medium">
+    Conhecer mais
+  </span>
+
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="w-4 h-4 group-hover:translate-x-1 transition-transform"
+  >
+    <path d="M5 12h14" />
+    <path d="m12 5 7 7-7 7" />
+  </svg>
+</motion.button>
         </motion.div>
 
         <AnimatePresence>
@@ -2777,6 +2807,8 @@ const [nitroTooltipOpen, setNitroTooltipOpen] =
     )
   }
 
+  
+
   export default function Home() {
 
     const [entrou, setEntrou] = useState(false)
@@ -2805,8 +2837,8 @@ const [activeTab, setActiveTab] =
 const [lazerTab, setLazerTab] =
   useState<'musica' | 'filmes'>('musica')
 
-const [lazerSelectedTab, setLazerSelectedTab] =
-  useState<'musica' | 'filmes'>('musica')
+  const [isLazerSwitching, setIsLazerSwitching] =
+  useState(false)
 
 useEffect(() => {
   const loadDiscordBanner = async () => {
@@ -2840,11 +2872,7 @@ useEffect(() => {
 
   loadDiscordBanner()
 }, [])
-  useState<'musica' | 'filmes'>('musica')
-    const [lazerDirection, setLazerDirection] =
-  useState(1)
-  const [isLazerSwitching, setIsLazerSwitching] =
-  useState(false)
+
   useEffect(() => {
   const savedTab =
     sessionStorage.getItem('activeTab')
@@ -3011,7 +3039,7 @@ useEffect(() => {
 
     return (
       
-      <main className="min-h-screen overflow-x-hidden antialiased"
+      <main className="min-h-screen overflow-x-clip antialiased"
             style={{
               backgroundColor: '#080503',
               color: '#ede3d6',
@@ -3019,7 +3047,7 @@ useEffect(() => {
               lineHeight: '24px'
             }}>
 
-        <AnimatedBackground />
+        <AnimatedBackground showRadials={activeTab === 'home'} />
 
         <AnimatePresence mode="wait">
     {!entrou && (
@@ -3160,24 +3188,97 @@ useEffect(() => {
   musicaAtual={musicaAtual}
   setIgModalOpen={setIgModalOpen}
   setRobloxModalOpen={setRobloxModalOpen}
+  setActiveTab={setActiveTab}
 />
       </motion.div>
     )}
 
     {activeTab === 'sobre' && (
-      <motion.div
-        key="sobre"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0 }}
-        className="relative z-10 min-h-screen px-6 pt-32 pb-20 max-w-4xl mx-auto"
-      >
-        <h1 className="text-4xl font-bold mb-6" style={{ color: '#ede3d6' }}>Sobre Mim</h1>
-        <div className="space-y-4" style={{ color: '#8d7d6e' }}>
-          <p>Reforming...</p>
+  <motion.div
+    key="sobre"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ duration: 0.3 }}
+    className="relative z-10 min-h-screen px-6 pt-28 pb-20 max-w-5xl mx-auto md:-translate-x-6"
+  >
+    {/* TÍTULO */}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="mb-16"
+    >
+      <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4">
+        Sobre Mim
+      </h1>
+
+      <div className="w-20 h-1 bg-primary rounded-full" />
+    </motion.div>
+
+    {/* BIO */}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        delay: 0.1,
+        duration: 0.5,
+      }}
+      className="mb-20"
+    >
+      <div className="bg-card border border-border rounded-xl overflow-hidden relative group">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-accent/0 to-secondary/0 group-hover:from-primary/5 group-hover:via-accent/3 group-hover:to-secondary/5 transition-all duration-700 pointer-events-none" />
+
+        <div className="p-6 md:p-8 relative z-10">
+          <p className="text-muted-foreground leading-relaxed text-lg whitespace-pre-line">
+            oi kkkk
+          </p>
         </div>
-      </motion.div>
-    )}
+      </div>
+    </motion.div>
+
+    {/* VINLAND */}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        delay: 0.2,
+        duration: 0.5,
+      }}
+      className="text-center"
+    >
+      <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-6">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="w-4 h-4 text-primary"
+        >
+          <polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5" />
+          <line x1="13" x2="19" y1="19" y2="13" />
+          <line x1="16" x2="20" y1="16" y2="20" />
+          <line x1="19" x2="21" y1="21" y2="19" />
+          <polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5" />
+          <line x1="5" x2="9" y1="14" y2="18" />
+          <line x1="7" x2="4" y1="17" y2="20" />
+          <line x1="3" x2="5" y1="19" y2="21" />
+        </svg>
+
+        <span className="text-sm font-semibold text-primary tracking-wider uppercase">
+          Vinland
+        </span>
+      </div>
+    </motion.div>
+
+  </motion.div>
+)}
+
+
 
               {activeTab === 'lazer' && (
     <motion.div
@@ -3204,89 +3305,72 @@ useEffect(() => {
 
         <div className="mt-4 flex items-center gap-1 p-1 rounded-[calc(var(--radius)+4px)] bg-secondary/40 border border-border/50 w-fit">
           <button
-    onClick={() => {
-  if (
-    lazerSelectedTab === 'musica' ||
-    isLazerSwitching
-  ) {
-    return
-  }
-
-  // O botão troca NA HORA
-  setLazerSelectedTab('musica')
-
-  setLazerDirection(-1)
-  setIsLazerSwitching(true)
-
-  // O conteúdo espera a animação
-  setTimeout(() => {
+  onClick={() => {
+    if (lazerTab === 'musica') return
     setLazerTab('musica')
-    setIsLazerSwitching(false)
-  }, 300)
+  }}
+  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+    lazerTab === 'musica'
+      ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
+      : 'text-muted-foreground hover:text-foreground hover:bg-secondary/60'
+  }`}
+>
+  <Music className="w-4 h-4" />
+  Música
+</button>
+
+<button
+  onClick={() => {
+  if (lazerTab === 'filmes') return
+  setLazerTab('filmes')
 }}
-    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-  lazerSelectedTab === 'musica'
-    ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
-    : 'text-muted-foreground hover:text-foreground hover:bg-secondary/60'
-}`}
-  >
-    <Music className="w-4 h-4" />
-    Música
-  </button>
-
-          <button
-    onClick={() => {
-  if (
-    lazerSelectedTab === 'filmes' ||
-    isLazerSwitching
-  ) {
-    return
-  }
-
-  // O botão troca NA HORA
-  setLazerSelectedTab('filmes')
-
-  setLazerDirection(1)
-  setIsLazerSwitching(true)
-
-  // O conteúdo espera a animação
-  setTimeout(() => {
-    setLazerTab('filmes')
-    setIsLazerSwitching(false)
-  }, 300)
-}}
-    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-  lazerSelectedTab === 'filmes'
-    ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
-    : 'text-muted-foreground hover:text-foreground hover:bg-secondary/60'
-}`}
-  >
-    <Film className="w-4 h-4" />
-    Filmes & Séries
-  </button>
+  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+    lazerTab === 'filmes'
+      ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
+      : 'text-muted-foreground hover:text-foreground hover:bg-secondary/60'
+  }`}
+>
+  <Film className="w-4 h-4" />
+  Filmes & Séries
+</button>
         </div>
       </motion.div>
 
-      <div className="relative">
+      <div className="relative overflow-x-clip">
   {/* MÚSICA */}
   <motion.div
     initial={false}
-    animate={{
-      opacity:
-        lazerTab === 'musica' && !isLazerSwitching
-          ? 1
-          : 0,
-
-      x:
-        lazerTab === 'musica'
-          ? isLazerSwitching
-            ? -28
-            : 0
-          : -28,
+    onAnimationComplete={() => {
+      if (lazerTab === 'musica') {
+        setIsLazerSwitching(false)
+      }
     }}
+    animate={
+      lazerTab === 'musica'
+        ? {
+            opacity: 1,
+            x: 0,
+            display: 'block',
+          }
+        : {
+            opacity: 0,
+            x: -20,
+            transitionEnd: {
+              display: 'none',
+            },
+          }
+    }
     transition={{
-      duration: 0.4,
-      ease: [0.4, 0, 0.2, 1],
+      opacity: {
+        duration: 0.35,
+        ease: [0.4, 0, 0.2, 1],
+        delay: lazerTab === 'musica' ? 0.3 : 0,
+      },
+      x: {
+        duration: 0.35,
+        ease: [0.4, 0, 0.2, 1],
+        delay: lazerTab === 'musica' ? 0.3 : 0,
+      },
     }}
     className={
       lazerTab === 'musica'
@@ -3300,22 +3384,37 @@ useEffect(() => {
   {/* FILMES E SÉRIES */}
   <motion.div
     initial={false}
-    animate={{
-      opacity:
-        lazerTab === 'filmes' && !isLazerSwitching
-          ? 1
-          : 0,
-
-      x:
-        lazerTab === 'filmes'
-          ? isLazerSwitching
-            ? 28
-            : 0
-          : 28,
+    onAnimationComplete={() => {
+      if (lazerTab === 'filmes') {
+        setIsLazerSwitching(false)
+      }
     }}
+    animate={
+      lazerTab === 'filmes'
+        ? {
+            opacity: 1,
+            x: 0,
+            display: 'block',
+          }
+        : {
+            opacity: 0,
+            x: 20,
+            transitionEnd: {
+              display: 'none',
+            },
+          }
+    }
     transition={{
-      duration: 0.4,
-      ease: [0.4, 0, 0.2, 1],
+      opacity: {
+        duration: 0.35,
+        ease: [0.4, 0, 0.2, 1],
+        delay: lazerTab === 'filmes' ? 0.3 : 0,
+      },
+      x: {
+        duration: 0.35,
+        ease: [0.4, 0, 0.2, 1],
+        delay: lazerTab === 'filmes' ? 0.3 : 0,
+      },
     }}
     className={
       lazerTab === 'filmes'
