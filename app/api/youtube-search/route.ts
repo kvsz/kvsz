@@ -5,9 +5,6 @@ import {
 
 import { decode } from 'he'
 
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
-
 type YouTubeSearchItem = {
   id?: {
     videoId?: string
@@ -513,21 +510,49 @@ const manualQuery =
 }
 
     const response = await fetch(
-      `https://www.googleapis.com/youtube/v3/search?${params.toString()}`,
-      {
-        cache: 'no-store',
-      },
-    )
+  `https://www.googleapis.com/youtube/v3/search?${params.toString()}`,
+  {
+    cache: 'force-cache',
+    next: {
+      revalidate: manualQuery
+        ? 604800
+        : 2592000,
+    },
+  },
+)
 
     const data: YouTubeSearchResponse =
       await response.json()
 
     if (!response.ok) {
-      throw new Error(
-        data.error?.message ??
-          `YouTube respondeu com ${response.status}`,
-      )
-    }
+  const upstreamMessage =
+    data.error?.message ??
+    `YouTube respondeu com ${response.status}`
+
+  console.error(
+    'YouTube search.list falhou:',
+    {
+      status: response.status,
+      query,
+      song,
+      artist,
+      manualQuery,
+      message: upstreamMessage,
+    },
+  )
+
+  return NextResponse.json(
+    {
+      error:
+        'A busca no YouTube falhou.',
+      details: upstreamMessage,
+      upstreamStatus: response.status,
+    },
+    {
+      status: 502,
+    },
+  )
+}
 
     const videoIds = (data.items ?? [])
   .map((item) => item.id?.videoId)
@@ -553,11 +578,16 @@ if (videoIds.length > 0) {
     })
 
   const detailsResponse = await fetch(
-    `https://www.googleapis.com/youtube/v3/videos?${detailsParams.toString()}`,
-    {
-      cache: 'no-store',
+  `https://www.googleapis.com/youtube/v3/videos?${detailsParams.toString()}`,
+  {
+    cache: 'force-cache',
+    next: {
+      revalidate: manualQuery
+        ? 604800
+        : 2592000,
     },
-  )
+  },
+)
 
   if (detailsResponse.ok) {
     const detailsData: YouTubeVideosResponse =

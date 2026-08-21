@@ -131,23 +131,36 @@ const searchInputRef =
 
     try {
       const response = await fetch(
-        `/api/youtube-search?${new URLSearchParams({
-          song,
-          artist,
-        }).toString()}`,
-        {
-          signal: controller.signal,
-        },
-      )
+  `/api/youtube-search?${new URLSearchParams({
+    song,
+    artist,
+  }).toString()}`,
+  {
+    signal: controller.signal,
+  },
+)
 
-      if (!response.ok) {
-        throw new Error(
-          'Não foi possível encontrar a música.',
-        )
-      }
+const data = await response.json()
 
-      const data: YouTubeResult =
-        await response.json()
+if (!response.ok) {
+  console.error(
+    'Erro real de /api/youtube-search:',
+    {
+      status: response.status,
+      error: data?.error,
+      details: data?.details,
+      upstreamStatus: data?.upstreamStatus,
+    },
+  )
+
+  throw new Error(
+    data?.details ||
+      data?.error ||
+      'Não foi possível encontrar a música.',
+  )
+}
+
+setVideo(data as YouTubeResult)
 
       setVideo(data)
     } catch (error) {

@@ -228,10 +228,28 @@ type RobloxData = {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: 0.2, ease: 'easeInOut' }}
-              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[70] w-[510px]"
+              className="
+  fixed left-1/2 top-1/2 z-[70]
+  w-[calc(100vw-2rem)]
+  max-w-[510px]
+  -translate-x-1/2
+  -translate-y-1/2
+"
             >
-              <div className="relative bg-[#120c07] rounded-xl border border-[#291f18] overflow-hidden shadow-lg w-">
-                <div className="p-6 h-full">
+              <div
+  className="
+    relative
+    w-full
+    max-h-[calc(100svh-2rem)]
+    overflow-y-auto
+    rounded-xl
+    border border-[#291f18]
+    bg-[#120c07]
+    shadow-lg
+    modal-scrollbar
+  "
+>
+                <div className="h-full p-4 sm:p-6">
                   {loading? (
                     <>
                       <div className="flex items-start gap-4 mb-5">
@@ -439,6 +457,11 @@ const [friendsPage, setFriendsPage] = useState(0)
 const [wearingPage, setWearingPage] = useState(0)
 const [communitiesPage, setCommunitiesPage] = useState(0)
 
+const [mobileRobloxTab, setMobileRobloxTab] =
+  useState<'profile' | 'items' | 'friends' | 'groups'>(
+    'profile',
+  )
+
 const [friendsPages, setFriendsPages] = useState<
   Record<number, RobloxFriend[]>
 >({})
@@ -452,6 +475,7 @@ const [friendsLoading, setFriendsLoading] = useState(false)
 useEffect(() => {
   if (!open) return
 
+  setMobileRobloxTab('profile')
   setFriendsPage(0)
   setWearingPage(0)
 setCommunitiesPage(0)
@@ -672,10 +696,18 @@ useEffect(() => {
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.2, ease: 'easeInOut' }}
             className="
-              fixed left-1/2 top-1/2 z-[70]
-              w-[min(1180px,94vw)] h-[min(720px,90vh)]
-              -translate-x-1/2 -translate-y-1/2
-            "
+  fixed left-1/2 z-[70]
+  -translate-x-1/2
+
+  top-24 bottom-24
+  w-[calc(100vw-1rem)]
+
+  md:top-1/2
+  md:bottom-auto
+  md:h-[min(720px,90vh)]
+  md:w-[min(1180px,94vw)]
+  md:-translate-y-1/2
+"
           >
             <div
               className="
@@ -688,8 +720,9 @@ useEffect(() => {
                 onClick={onClose}
                 aria-label="Fechar modal"
                 className="
-                  absolute left-4 top-4 z-50
-                  flex h-8 w-8 items-center justify-center
+                  hidden md:flex
+absolute left-4 top-4 z-50
+h-8 w-8 items-center justify-center
                   rounded-full bg-[#0f0a06]/90
                   text-[#8d7d6e] transition-colors
                   hover:text-[#ede3d6]
@@ -719,8 +752,624 @@ useEffect(() => {
                   </div>
                 </div>
               ) : data ? (
-                <div className="grid h-full grid-cols-[330px_minmax(0,1fr)]">
-                  {/* Coluna esquerda */}
+  <>
+    {/* ================= MOBILE ================= */}
+    <div className="flex h-full min-h-0 flex-col md:hidden">
+
+      {/* NAV DO MODAL */}
+      <div
+        className="
+          grid grid-cols-4 gap-1
+          flex-shrink-0
+          border-b border-[#291f18]
+          p-2
+        "
+      >
+        {/* PERFIL + FECHAR */}
+        <div
+          className={`
+            flex h-10 items-center
+            rounded-lg border
+            transition-colors
+            ${
+              mobileRobloxTab === 'profile'
+                ? 'border-[#b5825f]/40 bg-[#b5825f] text-[#120c07]'
+                : 'border-[#291f18] bg-[#0f0a06] text-[#8d7d6e]'
+            }
+          `}
+        >
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Fechar modal"
+            className="
+              flex h-full w-9
+              flex-shrink-0
+              items-center justify-center
+              text-lg
+            "
+          >
+            ×
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              setMobileRobloxTab('profile')
+            }
+            className="
+              flex h-full flex-1
+              items-center justify-center
+              pr-2 text-[11px] font-medium
+            "
+          >
+            Perfil
+          </button>
+        </div>
+
+        <button
+          type="button"
+          onClick={() =>
+            setMobileRobloxTab('items')
+          }
+          className={`
+            h-10 rounded-lg border
+            text-[11px] font-medium
+            transition-colors
+            ${
+              mobileRobloxTab === 'items'
+                ? 'border-[#b5825f]/40 bg-[#b5825f] text-[#120c07]'
+                : 'border-[#291f18] bg-[#0f0a06] text-[#8d7d6e]'
+            }
+          `}
+        >
+          Items
+        </button>
+
+        <button
+          type="button"
+          onClick={() =>
+            setMobileRobloxTab('friends')
+          }
+          className={`
+            h-10 rounded-lg border
+            text-[11px] font-medium
+            transition-colors
+            ${
+              mobileRobloxTab === 'friends'
+                ? 'border-[#b5825f]/40 bg-[#b5825f] text-[#120c07]'
+                : 'border-[#291f18] bg-[#0f0a06] text-[#8d7d6e]'
+            }
+          `}
+        >
+          Amigos
+        </button>
+
+        <button
+          type="button"
+          onClick={() =>
+            setMobileRobloxTab('groups')
+          }
+          className={`
+            h-10 rounded-lg border
+            text-[11px] font-medium
+            transition-colors
+            ${
+              mobileRobloxTab === 'groups'
+                ? 'border-[#b5825f]/40 bg-[#b5825f] text-[#120c07]'
+                : 'border-[#291f18] bg-[#0f0a06] text-[#8d7d6e]'
+            }
+          `}
+        >
+          Grupos
+        </button>
+      </div>
+
+      {/* CONTEÚDO DA ABA */}
+      <div
+        className="
+          min-h-0 flex-1
+          overflow-y-auto
+          p-3
+          modal-scrollbar
+        "
+      >
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={mobileRobloxTab}
+            initial={{
+              opacity: 0,
+              x: 12,
+            }}
+            animate={{
+              opacity: 1,
+              x: 0,
+            }}
+            exit={{
+              opacity: 0,
+              x: -12,
+            }}
+            transition={{
+              duration: 0.16,
+              ease: 'easeOut',
+            }}
+          >
+            {mobileRobloxTab === 'profile' && (
+  <div className="space-y-4">
+
+    {/* AVATAR */}
+    <div
+      className="
+        flex w-full aspect-square
+        items-end justify-center
+        overflow-hidden rounded-xl
+        bg-gradient-to-br
+        from-[#221812]/50
+        to-[#221812]
+      "
+    >
+      <img
+        src={data.avatar}
+        alt={`Avatar de ${data.displayName}`}
+        draggable={false}
+        className="
+          h-full w-full
+          select-none object-contain
+        "
+      />
+    </div>
+
+    {/* DADOS */}
+    <div>
+      <h2 className="text-xl font-bold text-[#ede3d6]">
+        {data.displayName}
+      </h2>
+
+      <p className="mt-1 text-xs text-[#8d7d6e]">
+        @{data.name}
+      </p>
+
+      {data.description && (
+        <p
+          className="
+            mt-3 text-xs leading-relaxed
+            text-[#8d7d6e]
+          "
+        >
+          {data.description}
+        </p>
+      )}
+
+      <div
+        className="
+          mt-3 flex items-center gap-1.5
+          text-[11px] text-[#8d7d6e]
+        "
+      >
+        <Calendar className="h-3 w-3" />
+
+        <span>{createdAt}</span>
+      </div>
+    </div>
+
+    {/* ESTATÍSTICAS */}
+    <div className="grid grid-cols-3 gap-1">
+      <div
+        className="
+          rounded-xl border border-[#291f18]/70
+          bg-[#221812]/40
+          px-2 py-3 text-center
+        "
+      >
+        <strong className="block text-lg text-[#ede3d6]">
+          {data.friends.toLocaleString('pt-BR')}
+        </strong>
+
+        <span className="text-[10px] text-[#8d7d6e]">
+          Amigos
+        </span>
+      </div>
+
+      <div
+        className="
+          rounded-xl border border-[#291f18]/70
+          bg-[#221812]/40
+          px-2 py-3 text-center
+        "
+      >
+        <strong className="block text-lg text-[#ede3d6]">
+          {data.followers.toLocaleString('pt-BR')}
+        </strong>
+
+        <span className="text-[10px] text-[#8d7d6e]">
+          Seguidores
+        </span>
+      </div>
+
+      <div
+        className="
+          rounded-xl border border-[#291f18]/70
+          bg-[#221812]/40
+          px-2 py-3 text-center
+        "
+      >
+        <strong className="block text-lg text-[#ede3d6]">
+          {data.following.toLocaleString('pt-BR')}
+        </strong>
+
+        <span className="text-[10px] text-[#8d7d6e]">
+          Seguindo
+        </span>
+      </div>
+    </div>
+
+    {/* BOTÃO */}
+    <a
+      href={`https://www.roblox.com/users/${data.id}/profile`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="
+        flex h-10 w-full
+        items-center justify-center
+        rounded-xl
+        bg-[#b5825f]
+        text-xs font-medium
+        text-[#120c07]
+      "
+    >
+      Ver perfil
+    </a>
+  </div>
+)}
+{mobileRobloxTab === 'items' && (
+  <div>
+    <div
+      className="
+        mb-4 flex
+        items-center justify-between
+      "
+    >
+      <h3
+        className="
+          flex items-center gap-2
+          text-lg font-black text-[#ede3d6]
+        "
+      >
+        <Handbag
+          className="h-4 w-4 text-[#8d7d6e]"
+        />
+
+        Vestindo Agora
+      </h3>
+
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() =>
+            setWearingPage((current) =>
+              Math.max(0, current - 1),
+            )
+          }
+          disabled={wearingPage === 0}
+          className="
+            text-[#8d7d6e]
+            disabled:opacity-30
+          "
+        >
+          <ChevronLeft size={16} />
+        </button>
+
+        <span className="text-[11px] text-[#8d7d6e]">
+          {wearingPage + 1}/{totalWearingPages}
+        </span>
+
+        <button
+          type="button"
+          onClick={() =>
+            setWearingPage((current) =>
+              Math.min(
+                totalWearingPages - 1,
+                current + 1,
+              ),
+            )
+          }
+          disabled={
+            wearingPage >= totalWearingPages - 1
+          }
+          className="
+            text-[#8d7d6e]
+            disabled:opacity-30
+          "
+        >
+          <ChevronRight size={16} />
+        </button>
+      </div>
+    </div>
+
+    <div className="grid grid-cols-3 gap-2">
+      {visibleWearingItems.map((item) => (
+        <a
+          key={item.id}
+          href={`https://www.roblox.com/catalog/${item.id}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="
+            min-w-0 rounded-xl
+            border border-[#291f18]/70
+            bg-[#221812]/30
+            p-2
+          "
+        >
+          <div
+            className="
+              relative aspect-square
+              overflow-hidden rounded-lg
+              bg-[#221812]/70
+            "
+          >
+            {item.image ? (
+              <img
+                src={item.image}
+                alt={item.name}
+                loading="lazy"
+                className="
+                  absolute inset-0
+                  h-full w-full
+                  object-contain
+                "
+              />
+            ) : (
+              <div className="h-full w-full bg-[#221812]" />
+            )}
+          </div>
+
+          <p
+            title={item.name}
+            className="
+              mt-2 truncate
+              text-center text-[10px]
+              text-[#8d7d6e]
+            "
+          >
+            {item.name}
+          </p>
+        </a>
+      ))}
+    </div>
+  </div>
+)}
+{mobileRobloxTab === 'friends' && (
+  <div>
+    <div className="mb-4 flex items-center justify-between">
+      <h3 className="text-lg font-black text-[#ede3d6]">
+        Amigos
+      </h3>
+
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() =>
+            loadFriendsPage(friendsPage - 1)
+          }
+          disabled={
+            friendsPage === 0 ||
+            friendsLoading
+          }
+          className="
+            text-[#8d7d6e]
+            disabled:opacity-30
+          "
+        >
+          <ChevronLeft size={16} />
+        </button>
+
+        <span className="text-[11px] text-[#8d7d6e]">
+          {friendsPage + 1}/{totalFriendPages}
+        </span>
+
+        <button
+          type="button"
+          onClick={() =>
+            loadFriendsPage(friendsPage + 1)
+          }
+          disabled={
+            friendsPage >= totalFriendPages - 1 ||
+            friendsLoading
+          }
+          className="
+            text-[#8d7d6e]
+            disabled:opacity-30
+          "
+        >
+          <ChevronRight size={16} />
+        </button>
+      </div>
+    </div>
+
+    <div
+      className="
+        grid grid-cols-4
+        gap-x-3 gap-y-4
+      "
+    >
+      {visibleFriends.map((friend) => (
+        <a
+          key={friend.id}
+          href={`https://www.roblox.com/users/${friend.id}/profile`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="min-w-0 text-center"
+        >
+          <div
+            className="
+              mx-auto aspect-square w-full
+              overflow-hidden rounded-full
+              border border-[#35271e]
+              bg-[#1a110b]
+            "
+          >
+            {friend.avatar ? (
+              <img
+                src={friend.avatar}
+                alt={friend.displayName}
+                loading="lazy"
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="h-full w-full bg-[#221812]" />
+            )}
+          </div>
+
+          <p
+            className="
+              mt-1.5 truncate
+              text-center text-[10px]
+              font-semibold text-[#ede3d6]
+            "
+          >
+            {friend.displayName || friend.name}
+          </p>
+        </a>
+      ))}
+    </div>
+
+    {friendsLoading && (
+      <div className="mt-6 flex justify-center">
+        <div
+          className="
+            h-6 w-6 animate-spin
+            rounded-full border-2
+            border-[#291f18]
+            border-t-[#b5825f]
+          "
+        />
+      </div>
+    )}
+  </div>
+)}
+{mobileRobloxTab === 'groups' && (
+  <div>
+    <div className="mb-4 flex items-center justify-between">
+      <h3 className="text-lg font-black text-[#ede3d6]">
+        Comunidades
+      </h3>
+
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() =>
+            setCommunitiesPage((current) =>
+              Math.max(0, current - 1),
+            )
+          }
+          disabled={communitiesPage === 0}
+          className="
+            text-[#8d7d6e]
+            disabled:opacity-30
+          "
+        >
+          <ChevronLeft size={16} />
+        </button>
+
+        <span className="text-[11px] text-[#8d7d6e]">
+          {communitiesPage + 1}/{totalCommunityPages}
+        </span>
+
+        <button
+          type="button"
+          onClick={() =>
+            setCommunitiesPage((current) =>
+              Math.min(
+                totalCommunityPages - 1,
+                current + 1,
+              ),
+            )
+          }
+          disabled={
+            communitiesPage >=
+            totalCommunityPages - 1
+          }
+          className="
+            text-[#8d7d6e]
+            disabled:opacity-30
+          "
+        >
+          <ChevronRight size={16} />
+        </button>
+      </div>
+    </div>
+
+    <div className="grid grid-cols-3 gap-2">
+      {visibleCommunities.map((group) => (
+        <a
+          key={group.id}
+          href={`https://www.roblox.com/communities/${group.id}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="min-w-0"
+        >
+          <div
+            className="
+              aspect-square overflow-hidden
+              rounded-xl border
+              border-[#291f18]
+              bg-[#1a110b]
+            "
+          >
+            {group.icon ? (
+              <img
+                src={group.icon}
+                alt={group.name}
+                loading="lazy"
+                className="
+                  h-full w-full
+                  object-cover
+                "
+              />
+            ) : (
+              <div
+                className="
+                  flex h-full
+                  items-center justify-center
+                "
+              >
+                <Users className="h-6 w-6 text-[#574b40]" />
+              </div>
+            )}
+          </div>
+
+          <p
+            className="
+              mt-1 truncate
+              text-[10px] font-semibold
+              text-[#ede3d6]
+            "
+          >
+            {group.name}
+          </p>
+
+          <p
+            className="
+              truncate text-[9px]
+              text-[#8d7d6e]
+            "
+          >
+            {formatMemberCount(group.memberCount)}
+          </p>
+        </a>
+      ))}
+    </div>
+  </div>
+)}
+                            </motion.div>
+        </AnimatePresence>
+      </div>
+    </div>
+
+    {/* ================= DESKTOP ================= */}
+    <div className="hidden h-full md:grid md:grid-cols-[330px_minmax(0,1fr)]">
+
+      {/* Coluna esquerda */}
                   <aside
   className="
     flex h-full flex-col
@@ -1268,8 +1917,10 @@ useEffect(() => {
                         ))}
                       </div>
                     </div>
-                  </section>
+                                    </section>
                 </div>
+
+              </>
               ) : error ? (
   <div
     className="
@@ -2150,9 +2801,17 @@ const [nitroTooltipOpen, setNitroTooltipOpen] =
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="text-2xl sm:text-4xl md:text-5xl font-bold text-foreground mb-2 md:mb-3 text-balance"
+          className="
+  text-2xl
+  sm:text-4xl
+  md:text-5xl
+  font-bold
+  text-foreground
+  mb-2 md:mb-3
+  text-balance
+  text-center
+"
           style={{
-            fontFamily: '"Inter", "Inter Fallback", sans-serif',
             fontWeight: 700,
             WebkitFontSmoothing: 'antialiased',
             transform: 'translateY(1px)',
@@ -2175,7 +2834,13 @@ const [nitroTooltipOpen, setNitroTooltipOpen] =
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
-          className="w-full max-w-2xl mx-auto px-4"
+          className="
+  w-full
+  max-w-2xl
+  mx-auto
+  flex justify-center
+  px-0 md:px-4
+"
           style={{ perspective: 2000 }}
         >
           <motion.div
@@ -2192,11 +2857,17 @@ const [nitroTooltipOpen, setNitroTooltipOpen] =
               stiffness: 400,
               damping: 21
             }}
-            className="relative rounded-2xl border overflow-visible"
+            className="
+  relative
+  w-[calc(100vw-4rem)]
+  max-w-[640px]
+  md:w-[640px]
+  md:min-h-[444px]
+  rounded-2xl
+  border
+  overflow-visible
+"
             style={{
-              width: '640px',
-              maxWidth: 'none',
-              minHeight: '444px',
               transformStyle: "preserve-3d",
               backgroundColor: '#120c07',
               borderColor: '#291f18',
@@ -2206,7 +2877,7 @@ const [nitroTooltipOpen, setNitroTooltipOpen] =
               willChange: 'transform',
             }}
           >
-            <div className="relative h-28 overflow-hidden rounded-t-2xl">
+            <div className="relative h-24 md:h-28 overflow-hidden rounded-t-2xl">
   {discordBanner ? (
     <img
       src={discordBanner}
@@ -2224,8 +2895,8 @@ const [nitroTooltipOpen, setNitroTooltipOpen] =
   )}
 </div>
 
-            <div className="px-6 pb-6">
-              <div className="flex items-end justify-between -mt-12 mb-4">
+            <div className="px-5 pb-5 md:px-6 md:pb-6">
+              <div className="flex items-end justify-between -mt-10 md:-mt-12 mb-4">
                 <motion.div
     className="relative"
     style={{
@@ -2234,7 +2905,15 @@ const [nitroTooltipOpen, setNitroTooltipOpen] =
     }}
   >
     <motion.div
-      className="w-24 h-24 rounded-full border-4 overflow-hidden bg-[#221812] cursor-pointer"
+      className="
+  w-20 h-20
+  md:w-24 md:h-24
+  rounded-full
+  border-4
+  overflow-hidden
+  bg-[#221812]
+  cursor-pointer
+"
       style={{ borderColor: '#120c07' }}
       onClick={() => setProfileModalOpen(true)}
       whileHover={{
@@ -2272,7 +2951,15 @@ const [nitroTooltipOpen, setNitroTooltipOpen] =
       <img
         src={avatarDecoration}
         alt=""
-        className="absolute inset-0 w-24 h-24 scale-[1.12] pointer-events-none select-none z-10"
+        className="
+  absolute inset-0
+  w-20 h-20
+  md:w-24 md:h-24
+  scale-[1.12]
+  pointer-events-none
+  select-none
+  z-10
+"
         draggable={false}
       />
     )}
@@ -2608,8 +3295,16 @@ const [nitroTooltipOpen, setNitroTooltipOpen] =
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.5, ease: "easeOut" }}
-          className="flex items-center gap-3 mt-10"
+          className="
+  flex flex-col items-center
+  gap-4 mt-5
+
+  md:flex-row
+  md:gap-3
+  md:mt-10
+"
         >
+          <div className="flex items-center gap-2 md:gap-3">
           <button
             onClick={() => setIgModalOpen(true)}
             className="w-9 h-9 md:w-11 md:h-11 rounded-xl border border-[#291f18] flex items-center justify-center bg-[#22181280] text-[#8d7d6e] hover:bg-[#221812] hover:text-[#ede3d6] hover:-translate-y-0.5 hover:scale-110 transition-all duration-150"
@@ -2677,8 +3372,18 @@ const [nitroTooltipOpen, setNitroTooltipOpen] =
     <path d="M10.328 0L0.32 37.856L37.672 48L47.68 10.144L10.328 0ZM26.382 30.328L17.504 27.988L19.852 19.102L28.73 21.442L26.382 30.328Z" />
   </svg>
 </button>
+</div>
 
-          <div className="w-px h-6 mx-2" style={{ backgroundColor: '#291f18' }}></div>
+          <div
+  className="
+    h-px w-40
+    md:h-6 md:w-px
+    md:mx-2
+  "
+  style={{
+    backgroundColor: '#291f18',
+  }}
+/>
 
           <motion.button
   type="button"
@@ -2687,7 +3392,18 @@ const [nitroTooltipOpen, setNitroTooltipOpen] =
     window.scrollTo({ top: 0, behavior: 'instant' })
   }}
   whileHover={{ x: 5 }}
-  className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer group px-4 py-2 rounded-lg hover:bg-secondary/50"
+  className="
+  flex items-center justify-center
+  gap-2
+  text-muted-foreground
+  hover:text-foreground
+  transition-colors
+  cursor-pointer
+  group
+  px-4 py-2
+  rounded-lg
+  hover:bg-secondary/50
+"
 >
   <span className="text-sm font-medium">
     Conhecer mais
@@ -3126,7 +3842,13 @@ useEffect(() => {
             <motion.div
     initial={{ y: 0, opacity: 1 }}
     animate={controls}
-    className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-2 py-2 rounded-2xl bg-[#0F0B06] shadow-lg backdrop-blur-md"
+    className="
+  hidden md:block
+  fixed top-4 left-1/2 -translate-x-1/2 z-50
+  px-2 py-2 rounded-2xl
+  bg-[#0F0B06]
+  shadow-lg backdrop-blur-md
+"
   >
     <nav>
       <div className="flex items-center gap-1 relative">
@@ -3165,6 +3887,81 @@ useEffect(() => {
     </nav>
   </motion.div>
 
+  {/* NAVBAR MOBILE */}
+<div
+  className="
+    md:hidden
+    fixed bottom-0 left-0 right-0 z-50
+    border-t border-[#291f18]/70
+    bg-[#120c07]/95
+    backdrop-blur-xl
+    px-2 pt-2
+    pb-[calc(0.5rem+env(safe-area-inset-bottom))]
+  "
+>
+  <nav>
+    <div className="flex items-center justify-around">
+      {[
+        { id: 'home', label: 'Home', icon: House },
+        { id: 'sobre', label: 'Sobre', icon: User },
+        { id: 'lazer', label: 'Lazer', icon: LazerIcon },
+      ].map((tab) => {
+        const Icon = tab.icon
+        const isActive = activeTab === tab.id
+
+        return (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() =>
+              setActiveTab(tab.id as any)
+            }
+            className={`
+              relative z-10
+              flex min-w-[64px] flex-col
+              items-center justify-center gap-1
+              rounded-xl px-3 py-2
+              text-[10px] font-medium
+              transition-colors
+              ${
+                isActive
+                  ? 'text-[#b5825f]'
+                  : 'text-[#8d7d6e]'
+              }
+            `}
+          >
+            {isActive && (
+              <motion.div
+                layoutId="activeTabMobile"
+                className="
+                  absolute inset-0
+                  rounded-xl
+                  bg-[#221812]
+                "
+                transition={{
+                  type: 'spring',
+                  stiffness: 350,
+                  damping: 30,
+                }}
+              />
+            )}
+
+            <Icon
+              size={18}
+              strokeWidth={2}
+              className="relative z-10"
+            />
+
+            <span className="relative z-10">
+              {tab.label}
+            </span>
+          </button>
+        )
+      })}
+    </div>
+  </nav>
+</div>
+
             <>
     {activeTab === 'home' && (
       <motion.div
@@ -3172,7 +3969,21 @@ useEffect(() => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }} // zero duration = some/aparece na hora
-        className="relative z-10 h-screen md:min-h-screen flex flex-col items-center justify-center px-14 pt-20 md:pt-22 pb-20 md:pb-32"
+        className="
+  relative z-10
+  min-h-[100svh]
+  flex flex-col
+  items-center justify-center
+
+  px-4
+  pt-6
+  pb-28
+
+  md:min-h-screen
+  md:px-14
+  md:pt-22
+  md:pb-32
+"
       >
         <HomeContent
   cardRef={cardRef}

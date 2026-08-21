@@ -88,6 +88,18 @@ const manualTrackImages: Record<string, string> = {
   'first strike|jades':
   'https://i1.sndcdn.com/artworks-2B2K3k5wyKw4qzuK-Cyrz3A-t500x500.png',
 
+  'poison|Jaydes':
+  'https://i1.sndcdn.com/artworks-sjXylbH95nydCLXb-U2gY3g-t500x500.png',
+
+  'influenced|Marceline':
+  'https://i1.sndcdn.com/artworks-jrYXD0hnf29k-0-t500x500.png',
+
+  'hat trick|Lucille':
+  'https://i1.sndcdn.com/artworks-Y6ZH7qZSwnu7vWle-CVsw7g-t500x500.png',
+
+  'Tomorrow|SR-71':
+  'https://i1.sndcdn.com/avatars-000212516658-15w0hf-t500x500.png',
+
   'nothing less, nothing more|Lucille':
   'https://imgs.search.brave.com/jX2BOjFNxsPuKA19VMEwn6LsvodE868WnXLzsKcktiM/rs:fit:200:200:1:0/g:ce/aHR0cHM6Ly9pMS5z/bmRjZG4uY29tL2Fy/dHdvcmtzLVRJQkRL/Z25kRk1QbC0wLXQx/MDgweDEwODAuanBn',
 
