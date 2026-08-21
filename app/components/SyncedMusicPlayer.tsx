@@ -864,20 +864,21 @@ const canSeek =
   </div>
 
   <div
-    className="
-      flex justify-between
-      font-mono text-[9px]
-      text-[#8d7d6e]/70
-    "
-  >
-    <span>
-      {formatSeconds(displayedCurrentTime)}
-    </span>
+  className="
+    flex justify-between
+    font-mono text-[10px]
+    text-muted-foreground/70
+    -translate-y-[4px]
+  "
+>
+  <span>
+    {formatSeconds(displayedCurrentTime)}
+  </span>
 
-    <span>
-      {formatSeconds(safeDuration)}
-    </span>
-  </div>
+  <span>
+    {formatSeconds(safeDuration)}
+  </span>
+</div>
 </div>
 
         {/* Controles */}

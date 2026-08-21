@@ -437,6 +437,33 @@ type RobloxData = {
   return `${formatted}M+ Members`
 }
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const media = window.matchMedia(
+      '(max-width: 767px)',
+    )
+
+    const update = () => {
+      setIsMobile(media.matches)
+    }
+
+    update()
+
+    media.addEventListener('change', update)
+
+    return () => {
+      media.removeEventListener(
+        'change',
+        update,
+      )
+    }
+  }, [])
+
+  return isMobile
+}
+
   function RobloxModal({
   open,
   onClose,
@@ -445,6 +472,8 @@ type RobloxData = {
   onClose: () => void
 }) {
   const ROBLOX_ID = '1075117505'
+
+  const isMobile = useIsMobile()
 
 const [loading, setLoading] = useState(true)
 const [data, setData] = useState<RobloxData | null>(null)
@@ -874,26 +903,19 @@ h-8 w-8 items-center justify-center
           modal-scrollbar
         "
       >
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={mobileRobloxTab}
-            initial={{
-              opacity: 0,
-              x: 12,
-            }}
-            animate={{
-              opacity: 1,
-              x: 0,
-            }}
-            exit={{
-              opacity: 0,
-              x: -12,
-            }}
-            transition={{
-              duration: 0.16,
-              ease: 'easeOut',
-            }}
-          >
+        <motion.div
+  key={mobileRobloxTab}
+  initial={{
+    opacity: 0,
+  }}
+  animate={{
+    opacity: 1,
+  }}
+  transition={{
+    duration: 0.1,
+    ease: 'easeOut',
+  }}
+>
             {mobileRobloxTab === 'profile' && (
   <div className="space-y-4">
 
@@ -909,14 +931,15 @@ h-8 w-8 items-center justify-center
       "
     >
       <img
-        src={data.avatar}
-        alt={`Avatar de ${data.displayName}`}
-        draggable={false}
-        className="
-          h-full w-full
-          select-none object-contain
-        "
-      />
+  src={data.avatar}
+  alt={`Avatar de ${data.displayName}`}
+  draggable={false}
+  decoding="async"
+  className="
+    h-full w-full
+    select-none object-contain
+  "
+/>
     </div>
 
     {/* DADOS */}
@@ -1109,9 +1132,10 @@ h-8 w-8 items-center justify-center
           >
             {item.image ? (
               <img
-                src={item.image}
-                alt={item.name}
-                loading="lazy"
+  src={item.image}
+  alt={item.name}
+  loading="lazy"
+  decoding="async"
                 className="
                   absolute inset-0
                   h-full w-full
@@ -1210,9 +1234,10 @@ h-8 w-8 items-center justify-center
           >
             {friend.avatar ? (
               <img
-                src={friend.avatar}
-                alt={friend.displayName}
-                loading="lazy"
+  src={friend.avatar}
+  alt={friend.displayName}
+  loading="lazy"
+  decoding="async"
                 className="h-full w-full object-cover"
               />
             ) : (
@@ -1318,9 +1343,10 @@ h-8 w-8 items-center justify-center
           >
             {group.icon ? (
               <img
-                src={group.icon}
-                alt={group.name}
-                loading="lazy"
+  src={group.icon}
+  alt={group.name}
+  loading="lazy"
+  decoding="async"
                 className="
                   h-full w-full
                   object-cover
@@ -1362,7 +1388,6 @@ h-8 w-8 items-center justify-center
   </div>
 )}
                             </motion.div>
-        </AnimatePresence>
       </div>
     </div>
 
@@ -1893,8 +1918,10 @@ h-8 w-8 items-center justify-center
                             <div className="h-[168px] overflow-hidden bg-[#221812]">
                               {group.icon ? (
                                 <img
-                                  src={group.icon}
-                                  alt={group.name}
+  src={group.icon}
+  alt={group.name}
+  loading="lazy"
+  decoding="async"
                                   className="h-full w-full object-cover transition-transform group-hover:scale-105"
                                 />
                               ) : (
@@ -2761,7 +2788,9 @@ function NitroModal({
   setRobloxModalOpen,
   setActiveTab,
 }: any) {
-    const spotify = useSpotify() // <- USA O HOOK AGORA
+  const isMobile = useIsMobile()
+
+  const spotify = useSpotify() // <- USA O HOOK AGORA
     const [profileModalOpen, setProfileModalOpen] = useState(false)
 
     const [nitroModalOpen, setNitroModalOpen] =
@@ -2841,22 +2870,53 @@ const [nitroTooltipOpen, setNitroTooltipOpen] =
   flex justify-center
   px-0 md:px-4
 "
-          style={{ perspective: 2000 }}
+          style={{
+  perspective: isMobile
+    ? 'none'
+    : 2000,
+}}
         >
           <motion.div
-            ref={cardRef}
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
-            animate={{
-              rotateX: isHovering ? rotate.x : 0,
-              rotateY: isHovering ? rotate.y : 0,
-              scale: isHovering ? 1.05 : 1
-            }}
-            transition={{
-              type: "spring",
-              stiffness: 400,
-              damping: 21
-            }}
+  ref={cardRef}
+  onMouseMove={
+    isMobile
+      ? undefined
+      : handleMouseMove
+  }
+  onMouseLeave={
+    isMobile
+      ? undefined
+      : handleMouseLeave
+  }
+  animate={
+    isMobile
+      ? {
+          rotateX: 0,
+          rotateY: 0,
+          scale: 1,
+        }
+      : {
+          rotateX:
+            isHovering ? rotate.x : 0,
+
+          rotateY:
+            isHovering ? rotate.y : 0,
+
+          scale:
+            isHovering ? 1.05 : 1,
+        }
+  }
+  transition={
+    isMobile
+      ? {
+          duration: 0,
+        }
+      : {
+          type: 'spring',
+          stiffness: 400,
+          damping: 21,
+        }
+  }
             className="
   relative
   w-[calc(100vw-4rem)]
@@ -2868,13 +2928,19 @@ const [nitroTooltipOpen, setNitroTooltipOpen] =
   overflow-visible
 "
             style={{
-              transformStyle: "preserve-3d",
+              transformStyle:
+  isMobile
+    ? 'flat'
+    : 'preserve-3d',
               backgroundColor: '#120c07',
               borderColor: '#291f18',
               boxShadow: isHovering
           ? 'rgba(0, 0, 0, 0.2) 4px 1.84px 20px 0px, rgba(188, 158, 123, 0.12) 0px 0px 80px 0px, rgba(167, 138, 98, 0.08) 0px 0px 140px'
                 : 'rgba(0, 0, 0, 0.15) 0px 20px 40px',
-              willChange: 'transform',
+              willChange:
+  isMobile
+    ? 'auto'
+    : 'transform',
             }}
           >
             <div className="relative h-24 md:h-28 overflow-hidden rounded-t-2xl">
@@ -2916,15 +2982,25 @@ const [nitroTooltipOpen, setNitroTooltipOpen] =
 "
       style={{ borderColor: '#120c07' }}
       onClick={() => setProfileModalOpen(true)}
-      whileHover={{
+      whileHover={
+  isMobile
+    ? undefined
+    : {
         scale: 1.15,
         rotate: 5,
-      }}
-      transition={{
+      }
+}
+transition={
+  isMobile
+    ? {
+        duration: 0,
+      }
+    : {
         type: 'spring',
         stiffness: 300,
         damping: 20,
-      }}
+      }
+}
     >
       <motion.img
         alt={discordData?.discord_user.global_name || '07'}
@@ -2934,13 +3010,20 @@ const [nitroTooltipOpen, setNitroTooltipOpen] =
         decoding="async"
         className="object-cover w-full h-full"
         src={avatarUrl}
-        whileHover={{
-          scale: 1.4,
-        }}
-        transition={{
-          duration: 0.5,
-          ease: 'easeOut',
-        }}
+        whileHover={
+  isMobile
+    ? undefined
+    : {
+        scale: 1.4,
+      }
+}
+transition={{
+  duration:
+    isMobile
+      ? 0
+      : 0.5,
+  ease: 'easeOut',
+}}
 
         
         
@@ -3265,17 +3348,17 @@ const [nitroTooltipOpen, setNitroTooltipOpen] =
     />
   </div>
 
-  {/* Tempo atual e duração */}
   <div
-    className="
-      flex items-center justify-between
-      font-mono text-[10px]
-      text-[#8d7d6e]
-    "
-  >
-    <span>{formatTime(currentProgress)}</span>
-    <span>{formatTime(duration)}</span>
-  </div>
+  className="
+    flex items-center justify-between
+    font-mono text-[11px]
+    text-[#8d7d6e]
+    -translate-y-[4px]
+  "
+>
+  <span>{formatTime(currentProgress)}</span>
+  <span>{formatTime(duration)}</span>
+</div>
 </div>
                         ) : (
                           <p className="text-xs mt-1" style={{ color: '#8d7d6e' }}>
@@ -3526,6 +3609,7 @@ const [nitroTooltipOpen, setNitroTooltipOpen] =
   
 
   export default function Home() {
+    const isMobile = useIsMobile()
 
     const [entrou, setEntrou] = useState(false)
     
@@ -3636,6 +3720,20 @@ useEffect(() => {
     const [revealing, setRevealing] = useState(false)
     const rafRef = useRef<number | null>(null);
 
+    const resetCardHover = useCallback(() => {
+  if (rafRef.current !== null) {
+    cancelAnimationFrame(rafRef.current)
+    rafRef.current = null
+  }
+
+  setRotate({
+    x: 0,
+    y: 0,
+  })
+
+  setIsHovering(false)
+}, [])
+
     useEffect(() => {
       if (isFirstRender.current) {
         isFirstRender.current = false
@@ -3668,9 +3766,50 @@ useEffect(() => {
     }
 
     function handleMouseLeave() {
-      setRotate({ x: 0, y: 0 });
-      setIsHovering(false);
+  resetCardHover()
+}
+
+useEffect(() => {
+  if (activeTab !== 'home') {
+    resetCardHover()
+  }
+}, [activeTab, resetCardHover])
+
+useEffect(() => {
+  const handleWindowBlur = () => {
+    resetCardHover()
+  }
+
+  const handleMouseOut = (
+    event: MouseEvent,
+  ) => {
+    if (event.relatedTarget === null) {
+      resetCardHover()
     }
+  }
+
+  window.addEventListener(
+    'blur',
+    handleWindowBlur,
+  )
+
+  window.addEventListener(
+    'mouseout',
+    handleMouseOut,
+  )
+
+  return () => {
+    window.removeEventListener(
+      'blur',
+      handleWindowBlur,
+    )
+
+    window.removeEventListener(
+      'mouseout',
+      handleMouseOut,
+    )
+  }
+}, [resetCardHover])
 
     useEffect(() => {
       const musicaSalva = localStorage.getItem('ultimaMusica')
@@ -3743,12 +3882,12 @@ useEffect(() => {
   const avatarExt = avatarHash?.startsWith('a_') ? 'gif' : 'png'
 
   const avatarUrl = avatarHash
-    ? `https://cdn.discordapp.com/avatars/${discordData.discord_user.id}/${avatarHash}.${avatarExt}?size=4096`
+    ? `https://cdn.discordapp.com/avatars/${discordData.discord_user.id}/${avatarHash}.${avatarExt}?size=512`
     : 'https://cdn.discordapp.com/embed/avatars/0.png'
 
     const avatarDecoration =
     discordData?.discord_user.avatar_decoration_data?.asset
-      ? `https://cdn.discordapp.com/avatar-decoration-presets/${discordData.discord_user.avatar_decoration_data.asset}.png?size=2048`
+      ? `https://cdn.discordapp.com/avatar-decoration-presets/${discordData.discord_user.avatar_decoration_data.asset}.png?size=512`
       : null
 
     const musicaAtual = discordData?.listening_to_spotify? discordData.spotify : ultimaMusica
@@ -3773,36 +3912,93 @@ useEffect(() => {
         exit={{ opacity: 0 }}
         transition={{ duration: 0.6 }}
         onClick={() => {
-    setRevealing(true)
-    setTimeout(() => setEntrou(true), 650)
-  }}
+  if (revealing) return
+
+  setRevealing(true)
+
+  setTimeout(
+    () => setEntrou(true),
+    isMobile ? 220 : 650,
+  )
+}}
         className="fixed inset-0 z-[10000] flex items-center justify-center bg-background cursor-pointer"
       >
         <motion.div
-    initial={{ opacity: 0, scale: 1 }}
-    animate={
-      revealing
-        ? { opacity: [1, 1, 0], scale: [1, 1.12, 0.35] }
-        : { opacity: 1, scale: 1 }
-    }
-    transition={{
-      duration: revealing ? 0.65 : 0.3,
-      ease: 'easeInOut',
-      delay: revealing ? 0 : 0.3,
-    }}
-    className="relative"
-  >
-          <motion.div
-            animate={{ opacity: [0.2, 0.5, 0.2], scale: [1, 1.4, 1] }}
-            transition={{ duration: 2.5, ease: 'easeInOut', repeat: Infinity }}
-            className="absolute inset-0 rounded-full blur-3xl bg-primary/20"
-          />
+  initial={{ opacity: 0, scale: 1 }}
+  animate={
+    revealing
+      ? isMobile
+        ? {
+            opacity: 0,
+            scale: 1,
+          }
+        : {
+            opacity: [1, 1, 0],
+            scale: [1, 1.12, 0.35],
+          }
+      : {
+          opacity: 1,
+          scale: 1,
+        }
+  }
+  transition={{
+    duration: revealing
+      ? isMobile
+        ? 0.18
+        : 0.65
+      : isMobile
+        ? 0.15
+        : 0.3,
 
-          <motion.div
-            animate={{ opacity: [0.3, 0.6, 0.3], scale: [1.2, 1, 1.2] }}
-            transition={{ delay: 0.3, duration: 2.5, ease: 'easeInOut', repeat: Infinity }}
-            className="absolute inset-0 rounded-full blur-2xl bg-primary/15"
-          />
+    ease: 'easeOut',
+
+    delay:
+      revealing || isMobile
+        ? 0
+        : 0.3,
+  }}
+  className="relative"
+>
+          {!isMobile && (
+  <>
+    <motion.div
+      animate={{
+        opacity: [0.2, 0.5, 0.2],
+        scale: [1, 1.4, 1],
+      }}
+      transition={{
+        duration: 2.5,
+        ease: 'easeInOut',
+        repeat: Infinity,
+      }}
+      className="
+        absolute inset-0
+        rounded-full
+        blur-3xl
+        bg-primary/20
+      "
+    />
+
+    <motion.div
+      animate={{
+        opacity: [0.3, 0.6, 0.3],
+        scale: [1.2, 1, 1.2],
+      }}
+      transition={{
+        delay: 0.3,
+        duration: 2.5,
+        ease: 'easeInOut',
+        repeat: Infinity,
+      }}
+      className="
+        absolute inset-0
+        rounded-full
+        blur-2xl
+        bg-primary/15
+      "
+    />
+  </>
+)}
 
           <motion.p
   animate={
@@ -3968,7 +4164,11 @@ useEffect(() => {
         key="home"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }} // zero duration = some/aparece na hora
+        transition={{
+  duration: isMobile
+    ? 0.15
+    : 0.5,
+}} // zero duration = some/aparece na hora
         className="
   relative z-10
   min-h-[100svh]
@@ -4009,7 +4209,11 @@ useEffect(() => {
     key="sobre"
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
-    transition={{ duration: 0.3 }}
+    transition={{
+  duration: isMobile
+    ? 0.15
+    : 0.3,
+}}
     className="relative z-10 min-h-screen px-6 pt-28 pb-20 max-w-5xl mx-auto md:-translate-x-6"
   >
     {/* TÍTULO */}
@@ -4094,10 +4298,39 @@ useEffect(() => {
               {activeTab === 'lazer' && (
     <motion.div
       key="lazer"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.3 }}
+      initial={
+  isMobile
+    ? {
+        opacity: 0,
+      }
+    : {
+        opacity: 0,
+        y: 20,
+      }
+}
+
+animate={{
+  opacity: 1,
+  y: 0,
+}}
+
+exit={
+  isMobile
+    ? {
+        opacity: 0,
+      }
+    : {
+        opacity: 0,
+        y: -20,
+      }
+}
+
+transition={{
+  duration:
+    isMobile
+      ? 0.15
+      : 0.3,
+}}
       className="relative z-10 min-h-screen px-6 pt-32 pb-20 max-w-[1300px] mx-auto"  
     >
       <motion.div
