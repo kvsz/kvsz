@@ -117,6 +117,7 @@ const manualRecentTrackImages: Record<string, string> = {
   'influenced|Marceline': 'https://i.scdn.co/image/ab67616d00001e022bcab0a1c1049ab6fb434f19',
   '157 CAFAJESTE X FINAL FANTASY - Slowed down|prodbymiri': 'https://image-cdn-ak.spotifycdn.com/image/ab67706c0000d72cffc64ed6edcd4e988f9168cd',
   'KYS|torturedskin': 'https://i1.sndcdn.com/artworks-0NXgSwyJq3cxgKOr-n7F2cg-t500x500.jpg',
+  "Quem Eu Era?|Alec'": 'https://akamai.sscdn.co/letras/360x360/albuns/8/7/1/8/4992441782820422.jpg',
 }
 
 const manualArtistImages: Record<string, string> = {
