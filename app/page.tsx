@@ -175,8 +175,8 @@ type RobloxData = {
   username: '21scy',
   avatar: 'https://i.pinimg.com/736x/72/b5/50/72b550d2616825119ebf7ed7ee46ac63.jpg',
   posts: 0,
-  followers: 21,
-  following: 28,
+  followers: 20,
+  following: 26,
   bio: (
   <>
     nothing less,
