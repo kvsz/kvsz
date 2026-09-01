@@ -173,7 +173,7 @@ type RobloxData = {
 
     const igData: InstagramData = {
   username: '21scy',
-  avatar: 'https://i.pinimg.com/736x/72/b5/50/72b550d2616825119ebf7ed7ee46ac63.jpg',
+  avatar: 'https://instagram.ftjl2-1.fna.fbcdn.net/v/t51.82787-19/779200947_18102851186218207_8145032144813662928_n.jpg?stp=dst-jpg_s150x150_tt6&_nc_cat=102&ccb=7-5&_nc_sid=f7ccc5&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLnd3dy4xMDgwLkMzIn0%3D&_nc_ohc=2fwJBXmxY7wQ7kNvwGKK9JF&_nc_oc=AdptLm-6UzNeaBWwCs75VElsYi9_xd3QZ78wLI5sCQWibNGk93He9C170x4KoUMgUHU&_nc_zt=24&_nc_ht=instagram.ftjl2-1.fna&_nc_gid=GCl3yFmamm_ZcpHirzptdw&_nc_ss=7b6a8&oh=00_AQLjPMUuf0KIW5iEFvCZScKuNxObdG9r3D4TEcSXl8cFGA&oe=6A9CC65B',
   posts: 0,
   followers: 20,
   following: 26,
