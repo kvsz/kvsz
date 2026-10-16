@@ -2036,36 +2036,37 @@ type NitroLevel = {
   unlockDays: number
 }
 
+
 const NITRO_LEVELS: NitroLevel[] = [
   {
     name: 'Bronze',
     image: 'https://ik.imagekit.io/xys3wb0qo/badges/bronze.png',
-    unlockDays: 0,
+    unlockDays: 30,
   },
   {
     name: 'Prata',
     image: 'https://ik.imagekit.io/xys3wb0qo/badges/silver.png',
-    unlockDays: 0,
+    unlockDays: 90,
   },
   {
     name: 'Ouro',
     image: 'https://ik.imagekit.io/xys3wb0qo/badges/gold.png',
-    unlockDays: 365,
+    unlockDays: 180,
   },
   {
     name: 'Platina',
     image: 'https://ik.imagekit.io/xys3wb0qo/badges/platinum.png',
-    unlockDays: 730,
+    unlockDays: 365,
   },
   {
     name: 'Diamante',
     image: 'https://ik.imagekit.io/xys3wb0qo/badges/diamond.png',
-    unlockDays: 1095,
+    unlockDays: 730,
   },
   {
     name: 'Esmeralda',
     image: 'https://ik.imagekit.io/xys3wb0qo/badges/emerald.png',
-    unlockDays: 1460,
+    unlockDays: 1095,
   },
   {
     name: 'Rubi',
@@ -2078,6 +2079,7 @@ const NITRO_LEVELS: NitroLevel[] = [
     unlockDays: 2190,
   },
 ]
+
 
 const DAY_IN_MS = 1000 * 60 * 60 * 24
 
@@ -2788,9 +2790,13 @@ function NitroModal({
   setRobloxModalOpen,
   setActiveTab,
 }: any) {
-  const isMobile = useIsMobile()
+  
+const isMobile = useIsMobile()
 
-  const spotify = useSpotify() // <- USA O HOOK AGORA
+const nitroBadge = getNitroLevel()
+
+const spotify = useSpotify() // <- USA O HOOK AGORA
+
     const [profileModalOpen, setProfileModalOpen] = useState(false)
 
     const [nitroModalOpen, setNitroModalOpen] =
@@ -3124,17 +3130,19 @@ transition={{
       "
     />
 
-    <img
-      src="https://ik.imagekit.io/xys3wb0qo/badges/silver.png"
-      alt="Nitro Prata"
-      width={20}
-      height={20}
-      draggable={false}
-      className="
-        relative z-10 h-5 w-5
-        select-none object-contain
-      "
-    />
+    
+<img
+  src={nitroBadge.current.image}
+  alt={`Nitro ${nitroBadge.current.name}`}
+  width={20}
+  height={20}
+  draggable={false}
+  className="
+    relative z-10 h-5 w-5
+    select-none object-contain
+  "
+/>
+
   </motion.button>
 
   <AnimatePresence>
